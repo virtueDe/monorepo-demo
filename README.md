@@ -1,2 +1,7 @@
-# monorepo-demo
-demo
+# pnpm workspace demo
+
+- eslint && commitlint
+
+- ts
+
+-
