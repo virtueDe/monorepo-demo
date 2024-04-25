@@ -1,21 +1,25 @@
 {
   "name": "monorepo-demo",
+  "type": "module",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "description": "",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
   "main": "index.js",
   "scripts": {
+    "dev:app": "vite packages/app",
+    "dev:edit": "vite packages/edit",
+    "build:edit": "pnpm --filter edit build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@antfu/eslint-config": "^2.15.0",
     "@types/node": "^20.12.7",
     "eslint": "^9.1.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10"
   }
 }
