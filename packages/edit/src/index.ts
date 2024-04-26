@@ -2,4 +2,4 @@ import './style.css'
 
 export { sum } from './sum'
 
-console.log(123123, 11111111)
+console.log(99999999999)

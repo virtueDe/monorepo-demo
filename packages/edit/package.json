@@ -1,27 +1,18 @@
 {
-  "name": "edit",
-  "version": "1.0.0",
+  "name": "@v50/edit-utils",
+  "type": "module",
+  "version": "0.0.1",
   "description": "",
   "author": "",
   "license": "ISC",
   "keywords": [],
-  "exports": {
-    ".": {
-      "import": "./dist/vite-vanilla-ts-lib-starter.mjs",
-      "require": "./dist/vite-vanilla-ts-lib-starter.cjs"
-    },
-    "./dist/": {
-      "import": "./dist/",
-      "require": "./dist/"
-    }
-  },
-  "main": "./dist/vite-vanilla-ts-lib-starter.cjs",
-  "module": "./dist/vite-vanilla-ts-lib-starter.mjs",
+  "main": "./dist/edit-utils.js",
+  "module": "./dist/edit-utils.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "vite --host",
-    "build": "rimraf --glob build/**/* && tsc && vite build && dts-bundle-generator --config ./dts-bundle-generator.config.ts && copyfiles ./package.json build",
-    "build:watch": "rimraf --glob build/**/* && tsc && vite build --watch && dts-bundle-generator --config ./dts-bundle-generator.config.ts && copyfiles ./package.json build"
+    "build:watch": "node ./scripts/watch-build.js",
+    "build": "vite build&& node ./writePackage.js"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.6",

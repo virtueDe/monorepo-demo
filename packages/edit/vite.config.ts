@@ -1,9 +1,11 @@
 import path from 'node:path'
 import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
 import packageJson from './package.json'
 
 function getPackageName() {
-  return packageJson.name
+  const nameArr = packageJson.name.split('/')
+  return nameArr[nameArr.length - 1]
 }
 
 function getPackageNameCamelCase() {
@@ -23,10 +25,13 @@ const fileName = {
 
 const formats = Object.keys(fileName) as Array<keyof typeof fileName>
 
-module.exports = defineConfig({
+export default defineConfig({
+  plugins: [dts({
+    rollupTypes: true,
+  })],
   base: './',
   build: {
-    outDir: './build/dist',
+    outDir: './dist',
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: getPackageNameCamelCase(),
@@ -34,7 +39,6 @@ module.exports = defineConfig({
       fileName: format => fileName[format],
     },
   },
-  // test: {},
   resolve: {
     alias: [
       { find: '@', replacement: path.resolve(__dirname, 'src') },
