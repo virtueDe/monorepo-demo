@@ -9,8 +9,8 @@
   "keywords": [],
   "main": "index.js",
   "scripts": {
-    "dev:app": "vite packages/app",
-    "dev:edit": "vite packages/edit",
+    "dev:app": "pnpm --filter app dev",
+    "dev:edit": "pnpm --filter edit dev",
     "build:edit": "pnpm --filter edit build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
@@ -20,6 +20,7 @@
     "@types/node": "^20.12.7",
     "eslint": "^9.1.0",
     "typescript": "^5.4.5",
-    "vite": "^5.2.10"
+    "vite": "^5.2.10",
+    "pnpm": "9.0.2"
   }
 }
