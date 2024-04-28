@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
 import packageJson from './package.json'
 
+import vitePluginWatchFile from './vite-plugins/watch-file-plugin/index'
+
 function getPackageName() {
   const nameArr = packageJson.name.split('/')
   return nameArr[nameArr.length - 1]
@@ -26,9 +28,17 @@ const fileName = {
 const formats = Object.keys(fileName) as Array<keyof typeof fileName>
 
 export default defineConfig({
-  plugins: [dts({
-    rollupTypes: true,
-  })],
+  plugins: [
+    dts({
+      rollupTypes: true,
+    }),
+    vitePluginWatchFile({
+      url: path.resolve(__dirname, 'src/'),
+      callback: (file) => {
+        console.log('change', 1111, file)
+      },
+    }),
+  ],
   base: './',
   build: {
     outDir: './dist',

@@ -10,8 +10,8 @@
   "main": "index.js",
   "scripts": {
     "dev:app": "pnpm --filter app dev",
-    "dev:edit": "pnpm --filter edit dev",
-    "build:edit": "pnpm --filter edit build",
+    "dev:edit": "pnpm --filter @v50/edit-utils dev",
+    "build:edit": "pnpm --filter @v50/edit-utils build:watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
@@ -19,7 +19,6 @@
     "@antfu/eslint-config": "^2.15.0",
     "@types/node": "^20.12.7",
     "eslint": "^9.1.0",
-    "pnpm": "9.0.2",
     "typescript": "^5.4.5",
     "vite": "^5.2.10"
   }

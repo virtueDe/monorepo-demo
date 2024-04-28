@@ -1,1 +1,4 @@
-export const sum = (a: number, b: number) => a + b;
+export const sum = (a: number, b: number) => a + b
+
+console.log(sum(1, 2))
+console.log(sum(1, 2))

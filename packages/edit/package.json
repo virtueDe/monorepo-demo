@@ -10,18 +10,17 @@
   "module": "./dist/edit-utils.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "vite dev",
     "build:watch": "node ./scripts/watch-build.js",
     "build": "vite build&& node ./writePackage.js"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.6",
     "@types/node": "^20.11.5",
-    "copyfiles": "^2.4.1",
-    "dts-bundle-generator": "^9.2.4",
     "postcss": "^8.4.33",
     "postcss-scss": "^4.0.9",
     "rimraf": "^5.0.5",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "vite-plugin-dts": "^3.9.0"
   }
 }

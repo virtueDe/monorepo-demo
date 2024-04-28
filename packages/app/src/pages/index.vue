@@ -1,10 +1,9 @@
 <script setup lang="ts" generic="T extends any, O extends any">
-import { sum } from 'edit'
 
 defineOptions({
   name: 'IndexPage',
 })
-console.log(sum(1, 2))
+
 
 // const name = ref('')
 
