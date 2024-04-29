@@ -1,9 +1,10 @@
 import path from 'node:path'
+import { exec } from 'node:child_process'
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
 import packageJson from './package.json'
 
-import vitePluginWatchFile from './vite-plugins/watch-file-plugin/index'
+import vitePluginWatchFile from './vite-plugins/watch-file/index'
 
 function getPackageName() {
   const nameArr = packageJson.name.split('/')
@@ -33,9 +34,15 @@ export default defineConfig({
       rollupTypes: true,
     }),
     vitePluginWatchFile({
-      url: path.resolve(__dirname, 'src/'),
-      callback: (file) => {
-        console.log('change', 1111, file)
+      path: path.resolve(__dirname, 'src/'),
+      callback: () => {
+        exec('pnpm build', (error, stdout) => {
+          if (error)
+            console.error(`Error executing command script: ${error}`)
+          else
+            // eslint-disable-next-line no-console
+            console.log(`Command script output: ${stdout}`)
+        })
       },
     }),
   ],
