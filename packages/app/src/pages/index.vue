@@ -1,10 +1,17 @@
 <script setup lang="ts" generic="T extends any, O extends any">
+import { sum } from "@v50/edit-utils";
+
+console.log(sum(1, 2));
+
 
 defineOptions({
   name: 'IndexPage',
 })
 
 
+onMounted(() => {
+  console.log('mounted');
+})
 // const name = ref('')
 
 // const router = useRouter()
