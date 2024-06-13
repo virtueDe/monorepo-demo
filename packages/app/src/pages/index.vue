@@ -13,9 +13,10 @@ defineOptions({
 /**
  * @description: Bar
  */
-
 const currentBarIndex = ref(0)
-
+const activeTranslateLeft = ref(0)
+const barItemRefs = ref<refItem[]>([]);
+const activeLine = ref<refItem>(null)
 const barOption = ref([
   {
     icon: 'i-carbon-cut-out',
@@ -42,31 +43,22 @@ onMounted(() => {
 const handleChangeIndex = (index: number) => {
   if (currentBarIndex.value === index) return;
   currentBarIndex.value = index;
+  initActiveTranslateLeft(currentBarIndex.value)
 }
 
-const activeTranslateLeft = ref(0)
-
-
-const barItemRefs = ref<refItem[]>([]);
 const setBarItemRefs = (el: refItem) => {
   if (el)
     barItemRefs.value.push(el);
 };
-const activeLine = ref(null)
+
 const initActiveTranslateLeft = (index: number) => {
-  // console.log(barItemRefs.value[index].offsetWidth, activeLine.value);
+  let marginLeft = parseInt(window.getComputedStyle(barItemRefs.value[index] as Element).marginLeft);
+  let marginRight = parseInt(window.getComputedStyle(barItemRefs.value[index] as Element).marginRight);
+  const b_offsetWidth = (barItemRefs.value[index] as HTMLElement).offsetWidth + marginLeft + marginRight
 
-  // const ['barItemBtn' + index] = ref()
-  // let currentItem = document.querySelector(".item-" + (index + 1));
-  // let activeItem = document.querySelector(".active");
-  // console.log(currentItem.offsetWidth);
-  // console.log(activeItem.offsetWidth);
-
-  // // 计算下划线位置
-  // this.left =
-  //   currentItem.offsetWidth * index +
-  //   (currentItem.offsetWidth - activeItem.offsetWidth) / 2;
-  // console.log(this.left);
+  const A_offsetWidth = (activeLine.value as HTMLElement).offsetWidth
+  // 计算下划线位置
+  activeTranslateLeft.value = b_offsetWidth * index + (b_offsetWidth - A_offsetWidth) / 2;
 }
 
 // const name = ref('')
@@ -90,7 +82,8 @@ const initActiveTranslateLeft = (index: number) => {
       <div flex font-size="22px" class="bar" pos-relative>
         <div :class="[item.icon, 'bar-item-btn']" :title="item.title" :ref="setBarItemRefs"
           v-for="(item, idx) in barOption" :key="idx" @click="handleChangeIndex(idx)"></div>
-        <div class="active-line" ref="activeLine" pos-absolute w-20px h-5px left-0 :style="{ left: activeTranslateLeft + 'px' }"></div>
+        <div class="active-line" ref="activeLine" pos-absolute w-18px h-5px left-0
+          :style="{ left: activeTranslateLeft + 'px' }"></div>
       </div>
       <div class="right" p-r-3>
         <div btn> 保存</div>
