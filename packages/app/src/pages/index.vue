@@ -86,13 +86,15 @@ const initActiveTranslateLeft = (index: number) => {
           :style="{ left: activeTranslateLeft + 'px' }"></div>
       </div>
       <div class="right" p-r-3>
-        <div btn> 保存</div>
+        <div btn>保存</div>
       </div>
     </div>
     <div flex-auto>
-      <canvas id="canvas"></canvas>
+      <canvas id="canvas" w-full h-full></canvas>
     </div>
-    <div h-60px w-full class="bg-[#23292c]"></div>
+    <div h-60px w-full class="bg-[#23292c]">
+      <input type="file" id="uploadImage" accept="image/*" style="color: #fff;">
+    </div>
   </div>
 </template>
 
