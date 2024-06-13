@@ -3,15 +3,16 @@ import { sum } from "@v50/edit-utils";
 import type { ComponentPublicInstance } from 'vue';
 type refItem = Element | ComponentPublicInstance | null
 
-console.log(sum(1, 2));
+// console.log(sum(1, 2));
 
 
 defineOptions({
   name: 'IndexPage',
 })
 
+
 /**
- * @description: Bar
+ * @module: Bar
  */
 const currentBarIndex = ref(0)
 const activeTranslateLeft = ref(0)
@@ -61,13 +62,159 @@ const initActiveTranslateLeft = (index: number) => {
   activeTranslateLeft.value = b_offsetWidth * index + (b_offsetWidth - A_offsetWidth) / 2;
 }
 
-// const name = ref('')
 
-// const router = useRouter()
-// function go() {
-//   if (name.value)
-//     router.push(`/hi/${encodeURIComponent(name.value)}`)
-// }
+/**
+ * @module: Image
+ */
+
+class CanvasImageManipulator {
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+  private image: HTMLImageElement = new Image();
+  private dpi: number = 1;
+
+  private scale: number = 1;
+  private dragging: boolean = false;
+  private lastX: number = 0;
+  private lastY: number = 0;
+  private offsetX: number = 0;
+  private offsetY: number = 0;
+  private drawing: boolean = false;
+  private startX: number = 0;
+  private startY: number = 0;
+  constructor(canvasId: string) {
+    this.dpi = window.devicePixelRatio || 1;
+    this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+    this.canvas.width = this.canvas.parentElement!.clientWidth * this.dpi;
+    this.canvas.height = this.canvas.parentElement!.clientHeight * this.dpi;
+    this.ctx = this.canvas.getContext('2d')!;
+    // this.ctx.scale(this.dpi, this.dpi)
+    this.initEventListeners();
+    // this.image = new Image();
+  }
+  public loadImage(src: string) {
+    if (!src) return
+    this.image.src = src;
+    this.image.onload = () => this.drawImage();
+  }
+  private initEventListeners() {
+    this.canvas.addEventListener('mousedown', (e) => this.startDragging(e));
+    this.canvas.addEventListener('mousemove', (e) => this.dragImage(e));
+    this.canvas.addEventListener('mouseup', () => this.stopDragging());
+    this.canvas.addEventListener('wheel', (e) => this.zoomImage(e));
+    this.canvas.addEventListener('mousedown', (e) => this.startDrawing(e));
+    this.canvas.addEventListener('mousemove', (e) => this.draw(e));
+    this.canvas.addEventListener('mouseup', () => this.stopDrawing());
+  }
+  private draw(event: MouseEvent) {
+    if (this.drawing) {
+      const currentX = event.offsetX;
+      const currentY = event.offsetY;
+      // this.ctx.strokeStyle = 'red';
+      // this.ctx.lineWidth = 2;
+      // this.ctx.beginPath();
+      this.ctx.moveTo(this.startX, this.startY);
+      // this.ctx.lineTo(currentX, currentY);
+      // this.ctx.stroke();
+      this.startX = currentX;
+      this.startY = currentY;
+    }
+  }
+
+  private startDrawing(event: MouseEvent) {
+    this.drawing = true;
+    this.startX = event.offsetX;
+    this.startY = event.offsetY;
+  }
+  private startDragging(event: MouseEvent) {
+    this.dragging = true;
+    this.lastX = event.offsetX;
+    this.lastY = event.offsetY;
+  }
+
+  private stopDrawing() {
+    this.drawing = false;
+  }
+  private dragImage(event: MouseEvent) {
+    if (this.dragging) {
+      const dx = event.offsetX - this.lastX;
+      const dy = event.offsetY - this.lastY;
+      this.offsetX += dx;
+      this.offsetY += dy;
+      this.lastX = event.offsetX;
+      this.lastY = event.offsetY;
+      this.redraw();
+    }
+  }
+  private zoomImage(event: WheelEvent) {
+    event.preventDefault();
+    const wheel = event.deltaY < 0 ? 1.1 : 0.9;
+    this.scale *= wheel;
+    this.offsetX *= wheel;
+    this.offsetY *= wheel;
+    this.redraw();
+  }
+  private redraw() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.drawImage();
+    // if (this.image.src) {
+    //   this.ctx.drawImage(this.image, this.offsetX, this.offsetY, this.image.width * this.scale, this.image.height * this.scale);
+    // }
+  }
+  private stopDragging() {
+    this.dragging = false;
+  }
+  private drawImage() {
+    const securityMargin = 20;
+    const canvasWidth = this.canvas.width - securityMargin * 2;
+    const canvasHeight = this.canvas.height - securityMargin * 2;
+
+
+    let scale = canvasWidth / this.image.width;
+    if ((this.image.height * scale) > canvasHeight) {
+      // 如果按宽度缩放后高度超出了Canvas，那么改用高度适应Canvas高度
+      scale = canvasHeight / this.image.height;
+    }
+
+    // 计算缩放后的图片尺寸
+    const scaledWidth = this.image.width * scale * this.scale;
+    const scaledHeight = this.image.height * scale * this.scale;
+
+    // 计算图片在Canvas上的居中位置
+    const x = (canvasWidth - scaledWidth) / 2;
+    const y = (canvasHeight - scaledHeight) / 2 + securityMargin;
+    // console.log(x, y);
+
+
+    // 绘制图片
+    this.ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height, x, y, scaledWidth, scaledHeight);
+    // console.log(scale);
+  }
+}
+
+const canvasInstance = ref<CanvasImageManipulator | null>(null)
+onMounted(() => {
+  canvasInstance.value = new CanvasImageManipulator('canvas')
+})
+const imageFileName = ref('请上传图片')
+
+
+const handleChangeUpload = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      canvasInstance.value?.loadImage(e.target?.result as string);
+      if (input.files && input.files.length > 0) {
+        imageFileName.value = input.files[0].name;
+      } else {
+        // 处理input.files为空的情况，例如设置默认值或显示错误信息
+        imageFileName.value = '请上传图片';
+      }
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
 </script>
 
 <template>
@@ -77,7 +224,7 @@ const initActiveTranslateLeft = (index: number) => {
         <div rel="noreferrer" href="javascript:0" h-full w-50px flex justify-center items-center class="bg-[#2D333C]">
           <div class="i-carbon-image-copy" font-size="25px"></div>
         </div>
-        <div pl-3 max-w-120px truncate>当前图片文件名字+icon</div>
+        <div pl-3 max-w-200px truncate :title="imageFileName">{{ imageFileName }}</div>
       </div>
       <div flex font-size="22px" class="bar" pos-relative>
         <div :class="[item.icon, 'bar-item-btn']" :title="item.title" :ref="setBarItemRefs"
@@ -89,11 +236,11 @@ const initActiveTranslateLeft = (index: number) => {
         <div btn>保存</div>
       </div>
     </div>
-    <div flex-auto>
-      <canvas id="canvas" w-full h-full></canvas>
+    <div flex-auto pos-relative>
+      <canvas id="canvas" w-full h-full pos-absolute top-0 left-0></canvas>
     </div>
     <div h-60px w-full class="bg-[#23292c]">
-      <input type="file" id="uploadImage" accept="image/*" style="color: #fff;">
+      <input type="file" @change="handleChangeUpload($event)" id="uploadImage" accept="image/*">
     </div>
   </div>
 </template>
