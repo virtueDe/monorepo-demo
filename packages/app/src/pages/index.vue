@@ -71,15 +71,26 @@ class CanvasImageManipulator {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private image: HTMLImageElement = new Image();
+
+
+  private securityMargin: number = 20;
+
   private dpi: number = 1;
 
-  private scale: number = 1;
+  private initialScale: number = 1;
+
+  public scale: number = 1;
+
   private dragging: boolean = false;
+
   private lastX: number = 0;
   private lastY: number = 0;
+
   private offsetX: number = 0;
   private offsetY: number = 0;
+
   private drawing: boolean = false;
+
   private startX: number = 0;
   private startY: number = 0;
   constructor(canvasId: string) {
@@ -88,14 +99,19 @@ class CanvasImageManipulator {
     this.canvas.width = this.canvas.parentElement!.clientWidth * this.dpi;
     this.canvas.height = this.canvas.parentElement!.clientHeight * this.dpi;
     this.ctx = this.canvas.getContext('2d')!;
-    // this.ctx.scale(this.dpi, this.dpi)
     this.initEventListeners();
-    // this.image = new Image();
   }
   public loadImage(src: string) {
     if (!src) return
     this.image.src = src;
-    this.image.onload = () => this.drawImage();
+    this.image.onload = () => {
+      this.initialScale = Math.min(
+        this.canvas.width / this.image.width,
+        this.canvas.height / this.image.height
+      );
+      this.scale = this.initialScale;
+      this.drawImage()
+    };
   }
   private initEventListeners() {
     this.canvas.addEventListener('mousedown', (e) => this.startDragging(e));
@@ -152,6 +168,7 @@ class CanvasImageManipulator {
     this.scale *= wheel;
     this.offsetX *= wheel;
     this.offsetY *= wheel;
+
     this.redraw();
   }
   private redraw() {
@@ -165,38 +182,38 @@ class CanvasImageManipulator {
     this.dragging = false;
   }
   private drawImage() {
-    const securityMargin = 20;
-    const canvasWidth = this.canvas.width - securityMargin * 2;
-    const canvasHeight = this.canvas.height - securityMargin * 2;
-
-
-    let scale = canvasWidth / this.image.width;
-    if ((this.image.height * scale) > canvasHeight) {
-      // 如果按宽度缩放后高度超出了Canvas，那么改用高度适应Canvas高度
-      scale = canvasHeight / this.image.height;
-    }
 
     // 计算缩放后的图片尺寸
-    const scaledWidth = this.image.width * scale * this.scale;
-    const scaledHeight = this.image.height * scale * this.scale;
+    const scaledWidth = this.image.width * this.scale;
+    const scaledHeight = this.image.height * this.scale;
 
-    // 计算图片在Canvas上的居中位置
-    const x = (canvasWidth - scaledWidth) / 2;
-    const y = (canvasHeight - scaledHeight) / 2 + securityMargin;
-    // console.log(x, y);
-
+    // // 计算图片在Canvas上的居中位置
+    this.offsetX = (this.canvas.width - scaledWidth) / 2;
+    this.offsetY = (this.canvas.height - scaledHeight) / 2;
 
     // 绘制图片
-    this.ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height, x, y, scaledWidth, scaledHeight);
-    // console.log(scale);
+    this.ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.offsetX, this.offsetY, scaledWidth, scaledHeight);
   }
 }
 
-const canvasInstance = ref<CanvasImageManipulator | null>(null)
+const canvasInstance = shallowRef<CanvasImageManipulator| null>(null)
+
+// const canvasInstanceObj = ref({
+//   instance: null as CanvasImageManipulator | null
+// })
+
 onMounted(() => {
   canvasInstance.value = new CanvasImageManipulator('canvas')
+
+  // setInterval(() => {
+  //   console.log(canvasInstanceObj.value.instance, canvasInstanceObj.value.instance?.scale);
+  // }, 1000)
+  // const canvasInstance = reactive(new CanvasImageManipulator('canvas'))
 })
 const imageFileName = ref('请上传图片')
+
+const scale = computed(() => {
+})
 
 
 const handleChangeUpload = (event: Event) => {
@@ -236,11 +253,12 @@ const handleChangeUpload = (event: Event) => {
         <div btn>保存</div>
       </div>
     </div>
-    <div flex-auto pos-relative>
+    <div flex-auto pos-relative class="bg-[#2D333C]">
       <canvas id="canvas" w-full h-full pos-absolute top-0 left-0></canvas>
     </div>
     <div h-60px w-full class="bg-[#23292c]">
       <input type="file" @change="handleChangeUpload($event)" id="uploadImage" accept="image/*">
+      <div class=" color-[#fff]">{{ canvasInstance?.scale }}</div>
     </div>
   </div>
 </template>
