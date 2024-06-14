@@ -81,6 +81,9 @@ class CanvasImageManipulator {
 
   public scale: number = 1;
 
+  public scaledWidth: number = 0;
+  public scaledHeight: number = 0;
+
   private dragging: boolean = false;
 
   private lastX: number = 0;
@@ -105,52 +108,72 @@ class CanvasImageManipulator {
     if (!src) return
     this.image.src = src;
     this.image.onload = () => {
+
       this.initialScale = Math.min(
         this.canvas.width / this.image.width,
         this.canvas.height / this.image.height
       );
+
       this.scale = this.initialScale;
+
+      this.scaledWidth = this.image.width * this.scale;
+      this.scaledHeight = this.image.height * this.scale;
+
+      // // 计算图片在Canvas上的居中位置
+      this.offsetX = (this.canvas.width - this.scaledWidth) / 2;
+      this.offsetY = (this.canvas.height - this.scaledHeight) / 2;
+
       this.drawImage()
     };
   }
   private initEventListeners() {
+    this.canvas.addEventListener('mouseleave', (e) => {
+      this.dragging = false;
+    });
+    document.addEventListener('mouseup', (e) => {
+      if (!this.canvas.contains(e.target as Node)) {
+        this.dragging = false;
+      }
+    });
+
     this.canvas.addEventListener('mousedown', (e) => this.startDragging(e));
     this.canvas.addEventListener('mousemove', (e) => this.dragImage(e));
     this.canvas.addEventListener('mouseup', () => this.stopDragging());
-    this.canvas.addEventListener('wheel', (e) => this.zoomImage(e));
-    this.canvas.addEventListener('mousedown', (e) => this.startDrawing(e));
-    this.canvas.addEventListener('mousemove', (e) => this.draw(e));
-    this.canvas.addEventListener('mouseup', () => this.stopDrawing());
-  }
-  private draw(event: MouseEvent) {
-    if (this.drawing) {
-      const currentX = event.offsetX;
-      const currentY = event.offsetY;
-      // this.ctx.strokeStyle = 'red';
-      // this.ctx.lineWidth = 2;
-      // this.ctx.beginPath();
-      this.ctx.moveTo(this.startX, this.startY);
-      // this.ctx.lineTo(currentX, currentY);
-      // this.ctx.stroke();
-      this.startX = currentX;
-      this.startY = currentY;
-    }
-  }
 
-  private startDrawing(event: MouseEvent) {
-    this.drawing = true;
-    this.startX = event.offsetX;
-    this.startY = event.offsetY;
+    this.canvas.addEventListener('wheel', (e) => this.zoomImage(e));
+    // this.canvas.addEventListener('mousedown', (e) => this.startDrawing(e));
+    // this.canvas.addEventListener('mousemove', (e) => this.draw(e));
+    // this.canvas.addEventListener('mouseup', () => this.stopDrawing());
   }
+  // private draw(event: MouseEvent) {
+  //   if (this.drawing) {
+  //     const currentX = event.offsetX;
+  //     const currentY = event.offsetY;
+  //     // this.ctx.strokeStyle = 'red';
+  //     // this.ctx.lineWidth = 2;
+  //     // this.ctx.beginPath();
+  //     this.ctx.moveTo(this.startX, this.startY);
+  //     // this.ctx.lineTo(currentX, currentY);
+  //     // this.ctx.stroke();
+  //     this.startX = currentX;
+  //     this.startY = currentY;
+  //   }
+  // }
+
+  // private startDrawing(event: MouseEvent) {
+  //   this.drawing = true;
+  //   this.startX = event.offsetX;
+  //   this.startY = event.offsetY;
+  // }
   private startDragging(event: MouseEvent) {
     this.dragging = true;
     this.lastX = event.offsetX;
     this.lastY = event.offsetY;
   }
 
-  private stopDrawing() {
-    this.drawing = false;
-  }
+  // private stopDrawing() {
+  //   this.drawing = false;
+  // }
   private dragImage(event: MouseEvent) {
     if (this.dragging) {
       const dx = event.offsetX - this.lastX;
@@ -166,6 +189,14 @@ class CanvasImageManipulator {
     event.preventDefault();
     const wheel = event.deltaY < 0 ? 1.1 : 0.9;
     this.scale *= wheel;
+
+    const rect = this.canvas.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+
+    console.log(x, y);
+
+
     this.offsetX *= wheel;
     this.offsetY *= wheel;
 
@@ -173,30 +204,20 @@ class CanvasImageManipulator {
   }
   private redraw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.scaledWidth = this.image.width * this.scale;
+    this.scaledHeight = this.image.height * this.scale;
     this.drawImage();
-    // if (this.image.src) {
-    //   this.ctx.drawImage(this.image, this.offsetX, this.offsetY, this.image.width * this.scale, this.image.height * this.scale);
-    // }
   }
   private stopDragging() {
     this.dragging = false;
   }
   private drawImage() {
-
-    // 计算缩放后的图片尺寸
-    const scaledWidth = this.image.width * this.scale;
-    const scaledHeight = this.image.height * this.scale;
-
-    // // 计算图片在Canvas上的居中位置
-    this.offsetX = (this.canvas.width - scaledWidth) / 2;
-    this.offsetY = (this.canvas.height - scaledHeight) / 2;
-
     // 绘制图片
-    this.ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.offsetX, this.offsetY, scaledWidth, scaledHeight);
+    this.ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.offsetX, this.offsetY, this.scaledWidth, this.scaledHeight);
   }
 }
 
-const canvasInstance = shallowRef<CanvasImageManipulator| null>(null)
+const canvasInstance = shallowRef<CanvasImageManipulator | null>(null)
 
 // const canvasInstanceObj = ref({
 //   instance: null as CanvasImageManipulator | null
@@ -205,6 +226,7 @@ const canvasInstance = shallowRef<CanvasImageManipulator| null>(null)
 onMounted(() => {
   canvasInstance.value = new CanvasImageManipulator('canvas')
 
+  // canvasInstance.value.
   // setInterval(() => {
   //   console.log(canvasInstanceObj.value.instance, canvasInstanceObj.value.instance?.scale);
   // }, 1000)
