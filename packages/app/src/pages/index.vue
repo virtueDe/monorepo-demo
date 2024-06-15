@@ -190,15 +190,8 @@ class CanvasImageManipulator {
     const wheel = event.deltaY < 0 ? 1.1 : 0.9;
     this.scale *= wheel;
 
-    const rect = this.canvas.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
-
-    console.log(x, y);
-
-
-    this.offsetX *= wheel;
-    this.offsetY *= wheel;
+    this.offsetX = event.clientX + (this.offsetX - event.clientX) * wheel;
+    this.clientY = event.clientY + (this.clientY - event.clientX) * wheel;
 
     this.redraw();
   }
