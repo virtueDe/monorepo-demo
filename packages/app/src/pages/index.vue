@@ -202,8 +202,8 @@ class CanvasImageManipulator {
 
   private stopDragging() {
     this.dragging = false;
-    this.lastX = null;
-    this.lastY = null;
+    this.lastX = 0;
+    this.lastY = 0;
   }
 
   private drawImage() {
