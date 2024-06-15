@@ -62,40 +62,51 @@ const initActiveTranslateLeft = (index: number) => {
   activeTranslateLeft.value = b_offsetWidth * index + (b_offsetWidth - A_offsetWidth) / 2;
 }
 
-
 /**
  * @module: Image
  */
 
 class CanvasImageManipulator {
+  /**
+   * @description: canvas && Img
+   */
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private image: HTMLImageElement = new Image();
 
+  /**
+   * @description: Scale
+   * minScale 缩放最小比例
+   * maxScale 缩放最大比例
+   * scale 缩放比例
+   * baseScale  // 基础缩放比例
+   */
+  private minScale: number = 0.1
+  private maxScale: number = 10
+  public scale: number = 1;
+  private baseScale: number = 1;
 
-  private securityMargin: number = 20;
+  /**
+   * @description: 距离边界的空隙
+   */
+  private margin: number = 20;
 
   private dpi: number = 1;
 
-  private initialScale: number = 1;
+  /**
+    * @description: 当前的坐标点
+    */
+  private originX: number = 0;
+  private originY: number = 0;
 
-  public scale: number = 1;
-
-  public scaledWidth: number = 0;
-  public scaledHeight: number = 0;
-
-  private dragging: boolean = false;
-
+  /**
+    * @description: 上次的坐标点
+    */
   private lastX: number = 0;
   private lastY: number = 0;
 
-  private offsetX: number = 0;
-  private offsetY: number = 0;
+  private dragging: boolean = false;
 
-  private drawing: boolean = false;
-
-  private startX: number = 0;
-  private startY: number = 0;
   constructor(canvasId: string) {
     this.dpi = window.devicePixelRatio || 1;
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -109,19 +120,20 @@ class CanvasImageManipulator {
     this.image.src = src;
     this.image.onload = () => {
 
-      this.initialScale = Math.min(
-        this.canvas.width / this.image.width,
-        this.canvas.height / this.image.height
-      );
+      const canvasAspect = this.canvas.width / this.canvas.height;
+      const imageAspect = this.image.width / this.image.height;
 
-      this.scale = this.initialScale;
+      if (imageAspect > canvasAspect) {
+        this.baseScale = (this.canvas.width - 2 * this.margin) / this.image.width;
+      } else {
+        this.baseScale = (this.canvas.height - 2 * this.margin) / this.image.height;
+      }
 
-      this.scaledWidth = this.image.width * this.scale;
-      this.scaledHeight = this.image.height * this.scale;
+      this.scale = this.baseScale;
 
-      // // 计算图片在Canvas上的居中位置
-      this.offsetX = (this.canvas.width - this.scaledWidth) / 2;
-      this.offsetY = (this.canvas.height - this.scaledHeight) / 2;
+      // 计算初始位置，使得图片居中
+      this.originX = (this.canvas.width - this.image.width * this.scale) / 2;
+      this.originY = (this.canvas.height - this.image.height * this.scale) / 2;
 
       this.drawImage()
     };
@@ -141,72 +153,66 @@ class CanvasImageManipulator {
     this.canvas.addEventListener('mouseup', () => this.stopDragging());
 
     this.canvas.addEventListener('wheel', (e) => this.zoomImage(e));
-    // this.canvas.addEventListener('mousedown', (e) => this.startDrawing(e));
-    // this.canvas.addEventListener('mousemove', (e) => this.draw(e));
-    // this.canvas.addEventListener('mouseup', () => this.stopDrawing());
   }
-  // private draw(event: MouseEvent) {
-  //   if (this.drawing) {
-  //     const currentX = event.offsetX;
-  //     const currentY = event.offsetY;
-  //     // this.ctx.strokeStyle = 'red';
-  //     // this.ctx.lineWidth = 2;
-  //     // this.ctx.beginPath();
-  //     this.ctx.moveTo(this.startX, this.startY);
-  //     // this.ctx.lineTo(currentX, currentY);
-  //     // this.ctx.stroke();
-  //     this.startX = currentX;
-  //     this.startY = currentY;
-  //   }
-  // }
-
-  // private startDrawing(event: MouseEvent) {
-  //   this.drawing = true;
-  //   this.startX = event.offsetX;
-  //   this.startY = event.offsetY;
-  // }
   private startDragging(event: MouseEvent) {
+    if (event.buttons !== 1) return;
     this.dragging = true;
     this.lastX = event.offsetX;
     this.lastY = event.offsetY;
   }
-
-  // private stopDrawing() {
-  //   this.drawing = false;
-  // }
   private dragImage(event: MouseEvent) {
     if (this.dragging) {
-      const dx = event.offsetX - this.lastX;
-      const dy = event.offsetY - this.lastY;
-      this.offsetX += dx;
-      this.offsetY += dy;
-      this.lastX = event.offsetX;
-      this.lastY = event.offsetY;
-      this.redraw();
+      const mouseX = event.offsetX;
+      const mouseY = event.offsetY;
+
+      const dx = mouseX - this.lastX;
+      const dy = mouseY - this.lastY;
+
+      this.originX += dx;
+      this.originY += dy;
+
+      this.lastX = mouseX;
+      this.lastY = mouseY;
+
+      this.drawImage();
     }
   }
   private zoomImage(event: WheelEvent) {
     event.preventDefault();
-    const wheel = event.deltaY < 0 ? 1.1 : 0.9;
-    this.scale *= wheel;
 
-    this.offsetX = event.clientX + (this.offsetX - event.clientX) * wheel;
-    this.clientY = event.clientY + (this.clientY - event.clientX) * wheel;
+    const mouseX = event.offsetX;
+    const mouseY = event.offsetY;
 
-    this.redraw();
+    const wheel = event.deltaY < 0 ? 1 : -1;
+    const zoom = Math.exp(wheel * 0.1);
+
+    const newScale = this.scale * zoom;
+
+    if (newScale < this.baseScale * this.minScale || newScale > this.baseScale * this.maxScale) return;
+
+    // Calculate the new origin to keep the point under the mouse stationary
+    this.originX = mouseX - (mouseX - this.originX) * zoom;
+    this.originY = mouseY - (mouseY - this.originY) * zoom;
+
+    this.scale = newScale;
+    console.log(this.scale);
+
+    this.drawImage()
   }
-  private redraw() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.scaledWidth = this.image.width * this.scale;
-    this.scaledHeight = this.image.height * this.scale;
-    this.drawImage();
-  }
+
   private stopDragging() {
     this.dragging = false;
+    this.lastX = null;
+    this.lastY = null;
   }
+
   private drawImage() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // 计算新的宽度和高度
+    const newWidth = this.image.width * this.scale;
+    const newHeight = this.image.height * this.scale;
     // 绘制图片
-    this.ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.offsetX, this.offsetY, this.scaledWidth, this.scaledHeight);
+    this.ctx.drawImage(this.image, this.originX, this.originY, newWidth, newHeight);
   }
 }
 
@@ -219,6 +225,7 @@ const canvasInstance = shallowRef<CanvasImageManipulator | null>(null)
 onMounted(() => {
   canvasInstance.value = new CanvasImageManipulator('canvas')
 
+  canvasInstance.value?.loadImage('https://via.placeholder.com/1600x500');
   // canvasInstance.value.
   // setInterval(() => {
   //   console.log(canvasInstanceObj.value.instance, canvasInstanceObj.value.instance?.scale);
