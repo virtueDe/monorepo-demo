@@ -18,10 +18,22 @@ const currentBarIndex = ref(0)
 const activeTranslateLeft = ref(0)
 const barItemRefs = ref<refItem[]>([]);
 const activeLine = ref<refItem>(null)
-const barOption = ref([
+
+
+
+interface BarItem {
+  icon: string,
+  title: string,
+  handle?: () => void
+}
+
+const barOption = ref<BarItem[]>([
   {
     icon: 'i-carbon-cut-out',
     title: '裁剪',
+    handle: () => {
+      canvasInstance.value?.startCrop()
+    }
   }, {
     icon: 'i-carbon-awake',
     title: '亮度',
@@ -41,10 +53,13 @@ onMounted(() => {
   initActiveTranslateLeft(0)
 })
 
-const handleChangeIndex = (index: number) => {
-  if (currentBarIndex.value === index) return;
+const handleChangeIndex = (item: BarItem, index: number) => {
+  // if (currentBarIndex.value === index) return;
+
   currentBarIndex.value = index;
   initActiveTranslateLeft(currentBarIndex.value)
+
+  item.handle?.()
 }
 
 const setBarItemRefs = (el: refItem) => {
@@ -83,13 +98,13 @@ class CanvasImageManipulator {
    */
   private minScale: number = 0.1
   private maxScale: number = 10
-  public scale: number = 1;
   private baseScale: number = 1;
+  public scale: number = 1;
 
   /**
    * @description: 距离边界的空隙
    */
-  private margin: number = 20;
+  private margin: number = 100;
 
   private dpi: number = 1;
 
@@ -105,7 +120,28 @@ class CanvasImageManipulator {
   private lastX: number = 0;
   private lastY: number = 0;
 
+
+  /**
+    * @description: 缩放后的宽度高度
+    */
+  private scaleWidth: number = 0;
+  private scaleHeight: number = 0;
+
+
+  /**
+    * @description: 裁剪框
+    */
+  private cutWidth: number = 0;
+  private cutHeight: number = 0;
+  private cutX: number = 0;
+  private cutY: number = 0;
+  private cutLineWidth: number = 2;
+  private cutReferenceLineWidth: number = 1;
+  private cutDotWidth: number = 40;
+
   private dragging: boolean = false;
+
+  private cropping: boolean = false;
 
   constructor(canvasId: string) {
     this.dpi = window.devicePixelRatio || 1;
@@ -119,25 +155,32 @@ class CanvasImageManipulator {
     if (!src) return
     this.image.src = src;
     this.image.onload = () => {
-
-      const canvasAspect = this.canvas.width / this.canvas.height;
-      const imageAspect = this.image.width / this.image.height;
-
-      if (imageAspect > canvasAspect) {
-        this.baseScale = (this.canvas.width - 2 * this.margin) / this.image.width;
-      } else {
-        this.baseScale = (this.canvas.height - 2 * this.margin) / this.image.height;
-      }
-
-      this.scale = this.baseScale;
-
-      // 计算初始位置，使得图片居中
-      this.originX = (this.canvas.width - this.image.width * this.scale) / 2;
-      this.originY = (this.canvas.height - this.image.height * this.scale) / 2;
-
-      this.drawImage()
+      this.onLoadImage()
     };
   }
+  private onLoadImage() {
+    const canvasAspect = this.canvas.width / this.canvas.height;
+    const imageAspect = this.image.width / this.image.height;
+
+    if (imageAspect > canvasAspect) {
+      this.baseScale = (this.canvas.width - 2 * this.margin) / this.image.width;
+    } else {
+      this.baseScale = (this.canvas.height - 2 * this.margin) / this.image.height;
+    }
+
+    this.scale = this.baseScale;
+
+    // 计算初始位置，使得图片居中
+    this.originX = (this.canvas.width - this.image.width * this.scale) / 2;
+    this.originY = (this.canvas.height - this.image.height * this.scale) / 2;
+
+    // 计算新的宽度和高度
+    this.scaleWidth = this.image.width * this.scale;
+    this.scaleHeight = this.image.height * this.scale;
+
+    this.drawImage()
+  }
+
   private initEventListeners() {
     this.canvas.addEventListener('mouseleave', (e) => {
       this.dragging = false;
@@ -148,11 +191,11 @@ class CanvasImageManipulator {
       }
     });
 
-    this.canvas.addEventListener('mousedown', (e) => this.startDragging(e));
-    this.canvas.addEventListener('mousemove', (e) => this.dragImage(e));
-    this.canvas.addEventListener('mouseup', () => this.stopDragging());
+    this.canvas.addEventListener('mousedown', this.startDragging.bind(this));
+    this.canvas.addEventListener('mousemove', this.dragImage.bind(this));
+    this.canvas.addEventListener('mouseup', this.stopDragging.bind(this));
 
-    this.canvas.addEventListener('wheel', (e) => this.zoomImage(e));
+    this.canvas.addEventListener('wheel', this.zoomImage.bind(this));
   }
   private startDragging(event: MouseEvent) {
     if (event.buttons !== 1) return;
@@ -161,21 +204,78 @@ class CanvasImageManipulator {
     this.lastY = event.offsetY;
   }
   private dragImage(event: MouseEvent) {
-    if (this.dragging) {
-      const mouseX = event.offsetX;
-      const mouseY = event.offsetY;
+    const mouseX = event.offsetX;
+    const mouseY = event.offsetY;
 
+    if (this.dragging) {
       const dx = mouseX - this.lastX;
       const dy = mouseY - this.lastY;
 
-      this.originX += dx;
-      this.originY += dy;
+
 
       this.lastX = mouseX;
       this.lastY = mouseY;
-
-      this.drawImage();
+      if (this.cropping) {
+        this.cutX += dx;
+        this.cutY += dy;
+        // this.drawCutBox()
+      } else {
+        this.originX += dx;
+        this.originY += dy;
+        // this.drawImage()
+      }
+      this.draw()
+      // this.drawImage();
+      // this.drawCutBox()
+    } else {
+      this.canvas.style.cursor = this.getCursorStyle(mouseX, mouseY);
     }
+  }
+  private getCorner(x: number, y: number) {
+    const size = 10;
+    // if (Math.abs(x - this.cutX) < size && Math.abs(y - this.cutY) < size)
+    //   return "tl"; // top-left
+    // if (
+    //   Math.abs(x - (this.cutX + this.cutWidth)) < size &&
+    //   Math.abs(y - this.cutY) < size
+    // )
+    //   return "tr"; // top-right
+    // if (
+    //   Math.abs(x - this.cutX) < size &&
+    //   Math.abs(y - (this.cutY + this.cutHeight)) < size
+    // )
+    //   return "bl"; // bottom-left
+    // if (
+    //   Math.abs(x - (this.cutX + this.cutWidth)) < size &&
+    //   Math.abs(y - (this.cutY + this.cutHeight)) < size
+    // )
+    //   return "br"; // bottom-right
+    return null;
+  }
+  private getCursorStyle(x: number, y: number) {
+    const corner = this.getCorner(x, y);
+    if (corner) {
+      switch (corner) {
+        case "tl":
+        case "br":
+          return "nwse-resize";
+        case "tr":
+        case "bl":
+          return "nesw-resize";
+      }
+    }
+    if (this.isInCropBox(x, y)) {
+      return "move";
+    }
+    return "default";
+  }
+  private isInCropBox(x: number, y: number): boolean {
+    return (
+      x > this.cutX &&
+      x < this.cutX + this.cutWidth &&
+      y > this.cutY &&
+      y < this.cutY + this.cutHeight
+    );
   }
   private zoomImage(event: WheelEvent) {
     event.preventDefault();
@@ -194,10 +294,21 @@ class CanvasImageManipulator {
     this.originX = mouseX - (mouseX - this.originX) * zoom;
     this.originY = mouseY - (mouseY - this.originY) * zoom;
 
+
     this.scale = newScale;
+
+    // 计算新的宽度和高度
+    this.scaleWidth = this.image.width * this.scale;
+    this.scaleHeight = this.image.height * this.scale;
+
     console.log(this.scale);
 
-    this.drawImage()
+    // if (this.scaleWidth<this.cutWidth||this.scaleHeight<this.cutHeight) {
+    //   return
+    // }
+
+    // this.drawImage()
+    // this.drawCutBox()
   }
 
   private stopDragging() {
@@ -206,13 +317,155 @@ class CanvasImageManipulator {
     this.lastY = 0;
   }
 
-  private drawImage() {
+
+
+  private draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    // 计算新的宽度和高度
-    const newWidth = this.image.width * this.scale;
-    const newHeight = this.image.height * this.scale;
+    this.drawImage()
+    if (this.cropping) {
+      this.drawCutBox()
+    }
+  }
+
+
+  private drawImage() {
     // 绘制图片
-    this.ctx.drawImage(this.image, this.originX, this.originY, newWidth, newHeight);
+    this.ctx.drawImage(this.image, this.originX, this.originY, this.scaleWidth, this.scaleHeight);
+  }
+
+  private drawCutBox() {
+    this.ctx.save()
+
+    // 绘制裁剪框
+    this.ctx.strokeStyle = 'rgba(255,255,255)'
+    this.ctx.lineWidth = this.cutLineWidth
+    this.ctx.strokeRect(this.cutX, this.cutY, this.cutWidth, this.cutHeight)
+
+    // 绘制参考线
+    this.ctx.lineWidth = this.cutReferenceLineWidth
+    this.ctx.strokeStyle = 'rgba(255,255,255,.2)'
+    this.ctx.beginPath()
+    this.ctx.moveTo(this.cutX, this.cutY + this.cutHeight / 3)
+    this.ctx.lineTo(this.cutX + this.cutWidth, this.cutY + this.cutHeight / 3)
+    this.ctx.moveTo(this.cutX, this.cutY + (this.cutHeight * 2) / 3)
+    this.ctx.lineTo(this.cutX + this.cutWidth, this.cutY + (this.cutHeight * 2) / 3)
+    this.ctx.moveTo(this.cutX + this.cutWidth / 3, this.cutY)
+    this.ctx.lineTo(this.cutX + this.cutWidth / 3, this.cutY + this.cutHeight)
+    this.ctx.moveTo(this.cutX + (this.cutWidth * 2) / 3, this.cutY)
+    this.ctx.lineTo(this.cutX + (this.cutWidth * 2) / 3, this.cutY + this.cutHeight)
+    this.ctx.stroke()
+
+    // 绘制Dot线点
+
+    this.ctx.lineWidth = this.cutLineWidth
+    this.ctx.beginPath()
+
+    this.ctx.moveTo(this.cutX + this.cutWidth / 2 - this.cutDotWidth, this.cutY - this.cutLineWidth)
+    this.ctx.lineTo(this.cutX + this.cutWidth / 2 + this.cutDotWidth, this.cutY - this.cutLineWidth)
+
+    this.ctx.moveTo(this.cutX + this.cutWidth / 2 - this.cutDotWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+    this.ctx.lineTo(this.cutX + this.cutWidth / 2 + this.cutDotWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+
+
+    this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight / 2 - this.cutDotWidth)
+    this.ctx.lineTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight / 2 + this.cutDotWidth)
+
+    this.ctx.moveTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight / 2 - this.cutDotWidth)
+    this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight / 2 + this.cutDotWidth)
+
+
+    this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY - this.cutLineWidth)
+    this.ctx.lineTo(this.cutX + this.cutDotWidth / 2, this.cutY - this.cutLineWidth)
+    this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY - this.cutLineWidth)
+    this.ctx.lineTo(this.cutX - this.cutLineWidth, this.cutY + this.cutDotWidth / 2)
+
+
+    this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+    this.ctx.lineTo(this.cutX + this.cutDotWidth / 2, this.cutY + this.cutHeight + this.cutLineWidth)
+    this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight - this.cutDotWidth / 2)
+    this.ctx.lineTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+
+
+
+    this.ctx.moveTo(this.cutX + this.cutWidth - this.cutDotWidth / 2, this.cutY - this.cutLineWidth)
+    this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY - this.cutLineWidth)
+    this.ctx.moveTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY - this.cutLineWidth)
+    this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutDotWidth / 2)
+
+
+
+    this.ctx.moveTo(this.cutX + this.cutWidth - this.cutDotWidth / 2, this.cutY + this.cutHeight + this.cutLineWidth)
+    this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+    this.ctx.moveTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight - this.cutDotWidth / 2)
+    this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+
+    this.ctx.strokeStyle = 'rgba(255,255,255)'
+    this.ctx.stroke()
+
+
+
+    this.ctx.restore()
+  }
+  private drawCover() {
+    // 绘制上
+    this.ctx.save()
+    this.ctx.fillStyle = "rgba(0,0,0,0.5)"
+    this.ctx.fillRect(0, 0, this.canvas.width, this.originY)
+    this.ctx.globalCompositeOperation = "source-atop"
+    this.ctx.restore()
+    // 绘制下
+    this.ctx.save()
+    this.ctx.fillStyle = "rgba(0,0,0,0.5)"
+    this.ctx.fillRect(0, this.scaleHeight + this.originY, this.canvas.width, this.canvas.height - this.scaleHeight - this.originY)
+    this.ctx.globalCompositeOperation = "source-atop"
+    this.ctx.restore()
+
+    // 绘制左
+    this.ctx.save()
+    this.ctx.fillStyle = "rgba(0,0,0,0.5)"
+    this.ctx.fillRect(0, 0, this.originX, this.canvas.height)
+    this.ctx.globalCompositeOperation = "source-atop"
+    this.ctx.restore()
+
+    // 绘制右
+    this.ctx.save()
+    this.ctx.fillStyle = "rgba(0,0,0,0.5)"
+    this.ctx.fillRect(this.scaleWidth + this.originX, 0, this.canvas.width - this.scaleWidth - this.originX, this.canvas.height)
+    this.ctx.globalCompositeOperation = "source-atop"
+    this.ctx.restore()
+
+
+    // this.ctx.fillStyle = "rgba(0,0,0,0.5)"
+    // this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+    // this.ctx.globalCompositeOperation = "source-atop"
+    // this.ctx.restore()
+
+
+    // this.ctx.save()
+    // this.ctx.beginPath()
+    // this.ctx.rect(0, 0, this.canvas.width, this.canvas.height)
+    // this.ctx.clip()
+    // this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
+    // this.ctx.fillRect(this.originX, this.originY, this.scaleWidth, this.scaleHeight)
+    // this.ctx.restore()
+  }
+  public startCrop() {
+    this.cropping = true
+
+    this.onLoadImage()
+
+    this.cutX = this.originX - this.cutLineWidth / 2
+    this.cutY = this.originY - this.cutLineWidth / 2
+    this.cutWidth = this.scaleWidth + this.cutLineWidth
+    this.cutHeight = this.scaleHeight + this.cutLineWidth
+
+    // this.drawCover()
+    this.drawCutBox()
+  }
+  public endCrop() {
+    this.cropping = false
+
+
   }
 }
 
@@ -267,7 +520,7 @@ const handleChangeUpload = (event: Event) => {
       </div>
       <div flex font-size="22px" class="bar" pos-relative>
         <div :class="[item.icon, 'bar-item-btn']" :title="item.title" :ref="setBarItemRefs"
-          v-for="(item, idx) in barOption" :key="idx" @click="handleChangeIndex(idx)"></div>
+          v-for="(item, idx) in barOption" :key="idx" @click="handleChangeIndex(item, idx)"></div>
         <div class="active-line" ref="activeLine" pos-absolute w-18px h-5px left-0
           :style="{ left: activeTranslateLeft + 'px' }"></div>
       </div>
