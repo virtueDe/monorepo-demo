@@ -142,12 +142,18 @@ class CanvasImageManipulator {
   private dragging: boolean = false;
 
   private cropping: boolean = false;
+  private isResizing: boolean = false;
+  private resizeEdge: string | null = null;
+
+  private cursorPosition: 'crop' | 'edge' | 'corner' = 'crop'
 
   constructor(canvasId: string) {
     this.dpi = window.devicePixelRatio || 1;
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    this.canvas.width = this.canvas.parentElement!.clientWidth * this.dpi;
-    this.canvas.height = this.canvas.parentElement!.clientHeight * this.dpi;
+    // this.canvas.width = this.canvas.parentElement!.clientWidth * this.dpi;
+    // this.canvas.height = this.canvas.parentElement!.clientHeight * this.dpi;
+    this.canvas.width = this.canvas.parentElement!.clientWidth;
+    this.canvas.height = this.canvas.parentElement!.clientHeight;
     this.ctx = this.canvas.getContext('2d')!;
     this.initEventListeners();
   }
@@ -202,6 +208,14 @@ class CanvasImageManipulator {
     this.dragging = true;
     this.lastX = event.offsetX;
     this.lastY = event.offsetY;
+
+
+
+    // this.resizeEdge = this.getEdge(event.offsetX, event.offsetY);
+    // if (this.resizeEdge) {
+    //   this.isResizing = true;
+    // }
+
   }
   private dragImage(event: MouseEvent) {
     const mouseX = event.offsetX;
@@ -211,19 +225,38 @@ class CanvasImageManipulator {
       const dx = mouseX - this.lastX;
       const dy = mouseY - this.lastY;
 
-
-
       this.lastX = mouseX;
       this.lastY = mouseY;
+
       if (this.cropping) {
-        this.cutX += dx;
-        this.cutY += dy;
-        // this.drawCutBox()
+        if (this.isResizing) {
+          switch (this.resizeEdge) {
+            case "left":
+              this.cutWidth += this.cutX - mouseX;
+              this.cutX = mouseX;
+              break;
+            case "right":
+              this.cutWidth = mouseX - this.cutX;
+              break;
+            case "top":
+              this.cutHeight += this.cutY - mouseY;
+              this.cutY = mouseY;
+              break;
+            case "bottom":
+              this.cutHeight = mouseY - this.cutY;
+              break;
+          }
+
+        } else {
+          this.cutX += dx;
+          this.cutY += dy;
+        }
       } else {
         this.originX += dx;
         this.originY += dy;
         // this.drawImage()
       }
+      console.log('渲染');
       this.draw()
       // this.drawImage();
       // this.drawCutBox()
@@ -252,8 +285,16 @@ class CanvasImageManipulator {
     //   return "br"; // bottom-right
     return null;
   }
+  private getEdge(x: number, y: number) {
+    if (Math.abs(x - this.cutX) < this.cutLineWidth) return "left";
+    if (Math.abs(x - (this.cutX + this.cutWidth)) < this.cutLineWidth) return "right";
+    if (Math.abs(y - this.cutY) < this.cutLineWidth) return "top";
+    if (Math.abs(y - (this.cutY + this.cutHeight)) < this.cutLineWidth) return "bottom";
+    return null;
+  }
   private getCursorStyle(x: number, y: number) {
     const corner = this.getCorner(x, y);
+    const edge = this.getEdge(x, y);
     if (corner) {
       switch (corner) {
         case "tl":
@@ -262,6 +303,16 @@ class CanvasImageManipulator {
         case "tr":
         case "bl":
           return "nesw-resize";
+      }
+    }
+    if (edge) {
+      switch (edge) {
+        case "left":
+        case "right":
+          return "ew-resize";
+        case "top":
+        case "bottom":
+          return "ns-resize";
       }
     }
     if (this.isInCropBox(x, y)) {
