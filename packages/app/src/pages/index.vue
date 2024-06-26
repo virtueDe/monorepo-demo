@@ -142,10 +142,16 @@ class CanvasImageManipulator {
   private dragging: boolean = false;
 
   private cropping: boolean = false;
-  private isResizing: boolean = false;
+  // private isResizing: boolean = false;
   private resizeEdge: string | null = null;
 
-  private cursorPosition: 'crop' | 'edge' | 'corner' = 'crop'
+  /***
+   * @description: 鼠标在裁剪模块内
+   * 1. crop: 鼠标在裁剪框内
+   * 2. edge: 鼠标在裁剪框的边上
+   * 3. corner: 鼠标在裁剪框的角上
+   */
+  private mouseInCropModule: 'crop' | 'edge' | 'corner' | null = null
 
   constructor(canvasId: string) {
     this.dpi = window.devicePixelRatio || 1;
@@ -162,6 +168,7 @@ class CanvasImageManipulator {
     this.image.src = src;
     this.image.onload = () => {
       this.onLoadImage()
+      this.drawImage()
     };
   }
   private onLoadImage() {
@@ -183,8 +190,6 @@ class CanvasImageManipulator {
     // 计算新的宽度和高度
     this.scaleWidth = this.image.width * this.scale;
     this.scaleHeight = this.image.height * this.scale;
-
-    this.drawImage()
   }
 
   private initEventListeners() {
@@ -209,9 +214,17 @@ class CanvasImageManipulator {
     this.lastX = event.offsetX;
     this.lastY = event.offsetY;
 
+    const edge = this.getEdge(event.offsetX, event.offsetY)
 
+    if (edge) {
+      this.mouseInCropModule = 'edge'
+      this.resizeEdge = edge;
+    }
 
-    // this.resizeEdge = this.getEdge(event.offsetX, event.offsetY);
+    if (this.isInCropBox(event.offsetX, event.offsetY)) {
+      this.mouseInCropModule = 'crop'
+    }
+
     // if (this.resizeEdge) {
     //   this.isResizing = true;
     // }
@@ -229,7 +242,7 @@ class CanvasImageManipulator {
       this.lastY = mouseY;
 
       if (this.cropping) {
-        if (this.isResizing) {
+        if (this.mouseInCropModule === 'edge') {
           switch (this.resizeEdge) {
             case "left":
               this.cutWidth += this.cutX - mouseX;
@@ -246,20 +259,16 @@ class CanvasImageManipulator {
               this.cutHeight = mouseY - this.cutY;
               break;
           }
-
-        } else {
+        }
+        if (this.mouseInCropModule === 'crop') {
           this.cutX += dx;
           this.cutY += dy;
         }
       } else {
         this.originX += dx;
         this.originY += dy;
-        // this.drawImage()
       }
-      console.log('渲染');
       this.draw()
-      // this.drawImage();
-      // this.drawCutBox()
     } else {
       this.canvas.style.cursor = this.getCursorStyle(mouseX, mouseY);
     }
@@ -358,7 +367,7 @@ class CanvasImageManipulator {
     //   return
     // }
 
-    // this.drawImage()
+    this.draw()
     // this.drawCutBox()
   }
 
@@ -372,7 +381,13 @@ class CanvasImageManipulator {
 
   private draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    if (this.cropping) {
+      this.drawCover()
+
+    }
     this.drawImage()
+
     if (this.cropping) {
       this.drawCutBox()
     }
@@ -380,8 +395,11 @@ class CanvasImageManipulator {
 
 
   private drawImage() {
+    this.ctx.save()
+    this.ctx.globalCompositeOperation = "destination-over"
     // 绘制图片
     this.ctx.drawImage(this.image, this.originX, this.originY, this.scaleWidth, this.scaleHeight);
+    this.ctx.restore()
   }
 
   private drawCutBox() {
@@ -408,97 +426,58 @@ class CanvasImageManipulator {
 
     // 绘制Dot线点
 
-    this.ctx.lineWidth = this.cutLineWidth
-    this.ctx.beginPath()
+    // this.ctx.lineWidth = this.cutLineWidth
+    // this.ctx.beginPath()
 
-    this.ctx.moveTo(this.cutX + this.cutWidth / 2 - this.cutDotWidth, this.cutY - this.cutLineWidth)
-    this.ctx.lineTo(this.cutX + this.cutWidth / 2 + this.cutDotWidth, this.cutY - this.cutLineWidth)
+    // this.ctx.moveTo(this.cutX + this.cutWidth / 2 - this.cutDotWidth, this.cutY - this.cutLineWidth)
+    // this.ctx.lineTo(this.cutX + this.cutWidth / 2 + this.cutDotWidth, this.cutY - this.cutLineWidth)
 
-    this.ctx.moveTo(this.cutX + this.cutWidth / 2 - this.cutDotWidth, this.cutY + this.cutHeight + this.cutLineWidth)
-    this.ctx.lineTo(this.cutX + this.cutWidth / 2 + this.cutDotWidth, this.cutY + this.cutHeight + this.cutLineWidth)
-
-
-    this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight / 2 - this.cutDotWidth)
-    this.ctx.lineTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight / 2 + this.cutDotWidth)
-
-    this.ctx.moveTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight / 2 - this.cutDotWidth)
-    this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight / 2 + this.cutDotWidth)
+    // this.ctx.moveTo(this.cutX + this.cutWidth / 2 - this.cutDotWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+    // this.ctx.lineTo(this.cutX + this.cutWidth / 2 + this.cutDotWidth, this.cutY + this.cutHeight + this.cutLineWidth)
 
 
-    this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY - this.cutLineWidth)
-    this.ctx.lineTo(this.cutX + this.cutDotWidth / 2, this.cutY - this.cutLineWidth)
-    this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY - this.cutLineWidth)
-    this.ctx.lineTo(this.cutX - this.cutLineWidth, this.cutY + this.cutDotWidth / 2)
+    // this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight / 2 - this.cutDotWidth)
+    // this.ctx.lineTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight / 2 + this.cutDotWidth)
+
+    // this.ctx.moveTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight / 2 - this.cutDotWidth)
+    // this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight / 2 + this.cutDotWidth)
 
 
-    this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
-    this.ctx.lineTo(this.cutX + this.cutDotWidth / 2, this.cutY + this.cutHeight + this.cutLineWidth)
-    this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight - this.cutDotWidth / 2)
-    this.ctx.lineTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+    // this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY - this.cutLineWidth)
+    // this.ctx.lineTo(this.cutX + this.cutDotWidth / 2, this.cutY - this.cutLineWidth)
+    // this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY - this.cutLineWidth)
+    // this.ctx.lineTo(this.cutX - this.cutLineWidth, this.cutY + this.cutDotWidth / 2)
 
 
-
-    this.ctx.moveTo(this.cutX + this.cutWidth - this.cutDotWidth / 2, this.cutY - this.cutLineWidth)
-    this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY - this.cutLineWidth)
-    this.ctx.moveTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY - this.cutLineWidth)
-    this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutDotWidth / 2)
-
+    // this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+    // this.ctx.lineTo(this.cutX + this.cutDotWidth / 2, this.cutY + this.cutHeight + this.cutLineWidth)
+    // this.ctx.moveTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight - this.cutDotWidth / 2)
+    // this.ctx.lineTo(this.cutX - this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
 
 
-    this.ctx.moveTo(this.cutX + this.cutWidth - this.cutDotWidth / 2, this.cutY + this.cutHeight + this.cutLineWidth)
-    this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
-    this.ctx.moveTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight - this.cutDotWidth / 2)
-    this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
-
-    this.ctx.strokeStyle = 'rgba(255,255,255)'
-    this.ctx.stroke()
+    // this.ctx.moveTo(this.cutX + this.cutWidth - this.cutDotWidth / 2, this.cutY - this.cutLineWidth)
+    // this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY - this.cutLineWidth)
+    // this.ctx.moveTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY - this.cutLineWidth)
+    // this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutDotWidth / 2)
 
 
+    // this.ctx.moveTo(this.cutX + this.cutWidth - this.cutDotWidth / 2, this.cutY + this.cutHeight + this.cutLineWidth)
+    // this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+    // this.ctx.moveTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight - this.cutDotWidth / 2)
+    // this.ctx.lineTo(this.cutX + this.cutWidth + this.cutLineWidth, this.cutY + this.cutHeight + this.cutLineWidth)
+
+    // this.ctx.strokeStyle = 'rgba(255,255,255)'
+    // this.ctx.stroke()
 
     this.ctx.restore()
   }
   private drawCover() {
-    // 绘制上
     this.ctx.save()
     this.ctx.fillStyle = "rgba(0,0,0,0.5)"
-    this.ctx.fillRect(0, 0, this.canvas.width, this.originY)
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
     this.ctx.globalCompositeOperation = "source-atop"
+    this.ctx.clearRect(this.cutX, this.cutY, this.cutWidth, this.cutHeight);
     this.ctx.restore()
-    // 绘制下
-    this.ctx.save()
-    this.ctx.fillStyle = "rgba(0,0,0,0.5)"
-    this.ctx.fillRect(0, this.scaleHeight + this.originY, this.canvas.width, this.canvas.height - this.scaleHeight - this.originY)
-    this.ctx.globalCompositeOperation = "source-atop"
-    this.ctx.restore()
-
-    // 绘制左
-    this.ctx.save()
-    this.ctx.fillStyle = "rgba(0,0,0,0.5)"
-    this.ctx.fillRect(0, 0, this.originX, this.canvas.height)
-    this.ctx.globalCompositeOperation = "source-atop"
-    this.ctx.restore()
-
-    // 绘制右
-    this.ctx.save()
-    this.ctx.fillStyle = "rgba(0,0,0,0.5)"
-    this.ctx.fillRect(this.scaleWidth + this.originX, 0, this.canvas.width - this.scaleWidth - this.originX, this.canvas.height)
-    this.ctx.globalCompositeOperation = "source-atop"
-    this.ctx.restore()
-
-
-    // this.ctx.fillStyle = "rgba(0,0,0,0.5)"
-    // this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
-    // this.ctx.globalCompositeOperation = "source-atop"
-    // this.ctx.restore()
-
-
-    // this.ctx.save()
-    // this.ctx.beginPath()
-    // this.ctx.rect(0, 0, this.canvas.width, this.canvas.height)
-    // this.ctx.clip()
-    // this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
-    // this.ctx.fillRect(this.originX, this.originY, this.scaleWidth, this.scaleHeight)
-    // this.ctx.restore()
   }
   public startCrop() {
     this.cropping = true
@@ -511,12 +490,10 @@ class CanvasImageManipulator {
     this.cutHeight = this.scaleHeight + this.cutLineWidth
 
     // this.drawCover()
-    this.drawCutBox()
+    this.draw()
   }
   public endCrop() {
     this.cropping = false
-
-
   }
 }
 
