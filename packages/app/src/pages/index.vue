@@ -231,8 +231,8 @@ class CanvasImageManipulator {
 
   }
   private dragImage(event: MouseEvent) {
-    const mouseX = event.offsetX;
-    const mouseY = event.offsetY;
+    let mouseX = event.offsetX;
+    let mouseY = event.offsetY;
 
     if (this.dragging) {
       const dx = mouseX - this.lastX;
@@ -243,6 +243,10 @@ class CanvasImageManipulator {
 
       if (this.cropping) {
         if (this.mouseInCropModule === 'edge') {
+          mouseX = Math.max(mouseX, this.originX)
+          mouseX = Math.min(mouseX, this.originX + this.scaleWidth)
+          mouseY = Math.max(mouseY, this.originY)
+          mouseY = Math.min(mouseY, this.originY + this.scaleHeight)
           switch (this.resizeEdge) {
             case "left":
               this.cutWidth += this.cutX - mouseX;
@@ -263,6 +267,26 @@ class CanvasImageManipulator {
         if (this.mouseInCropModule === 'crop') {
           this.cutX += dx;
           this.cutY += dy;
+
+          // 确保裁剪框在图片范围内
+          this.cutX = Math.max(
+            this.cutX,
+            this.originX
+          );
+
+          this.cutY = Math.max(
+            this.cutY,
+            this.originY
+          );
+
+          if (this.cutX + this.cutWidth > this.originX + this.scaleWidth) {
+            this.cutX = this.originX + this.scaleWidth - this.cutWidth
+          }
+
+          if (this.cutY + this.cutHeight > this.originY + this.scaleHeight) {
+            this.cutY = this.originY + this.scaleHeight - this.cutHeight
+          }
+
         }
       } else {
         this.originX += dx;
@@ -350,10 +374,15 @@ class CanvasImageManipulator {
 
     if (newScale < this.baseScale * this.minScale || newScale > this.baseScale * this.maxScale) return;
 
-    // Calculate the new origin to keep the point under the mouse stationary
+    const relativeX = this.originX - this.cutX
+    const relativeY = this.originY - this.cutY
+
+    // 计算按照鼠标点进行缩放计算
     this.originX = mouseX - (mouseX - this.originX) * zoom;
     this.originY = mouseY - (mouseY - this.originY) * zoom;
 
+    this.cutX = this.originX - relativeX * zoom
+    this.cutY = this.originY - relativeY * zoom
 
     this.scale = newScale;
 
@@ -361,14 +390,10 @@ class CanvasImageManipulator {
     this.scaleWidth = this.image.width * this.scale;
     this.scaleHeight = this.image.height * this.scale;
 
-    console.log(this.scale);
-
-    // if (this.scaleWidth<this.cutWidth||this.scaleHeight<this.cutHeight) {
-    //   return
-    // }
+    this.cutWidth = this.cutWidth * zoom;
+    this.cutHeight = this.cutHeight * zoom;
 
     this.draw()
-    // this.drawCutBox()
   }
 
   private stopDragging() {
@@ -376,8 +401,6 @@ class CanvasImageManipulator {
     this.lastX = 0;
     this.lastY = 0;
   }
-
-
 
   private draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -392,7 +415,6 @@ class CanvasImageManipulator {
       this.drawCutBox()
     }
   }
-
 
   private drawImage() {
     this.ctx.save()
@@ -489,7 +511,11 @@ class CanvasImageManipulator {
     this.cutWidth = this.scaleWidth + this.cutLineWidth
     this.cutHeight = this.scaleHeight + this.cutLineWidth
 
-    // this.drawCover()
+
+    // this.cutX = this.originX + 50
+    // this.cutY = this.originY + 50
+    // this.cutWidth = 100 * this.scale
+    // this.cutHeight = 100 * this.scale
     this.draw()
   }
   public endCrop() {
