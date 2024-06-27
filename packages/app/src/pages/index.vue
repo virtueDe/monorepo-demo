@@ -167,11 +167,11 @@ class CanvasImageManipulator {
     if (!src) return
     this.image.src = src;
     this.image.onload = () => {
-      this.onLoadImage()
+      this.onResetImage()
       this.drawImage()
     };
   }
-  private onLoadImage() {
+  private onResetImage() {
     const canvasAspect = this.canvas.width / this.canvas.height;
     const imageAspect = this.image.width / this.image.height;
 
@@ -207,6 +207,46 @@ class CanvasImageManipulator {
     this.canvas.addEventListener('mouseup', this.stopDragging.bind(this));
 
     this.canvas.addEventListener('wheel', this.zoomImage.bind(this));
+
+    window.addEventListener('resize', () => {
+
+      const newWidth = this.canvas.parentElement!.clientWidth;
+      const newHeight = this.canvas.parentElement!.clientHeight
+      const widthRatio = newWidth / this.canvas.width;
+      const heightRatio = newHeight / this.canvas.height;
+
+      const ratio = this.scaleWidth / this.scaleHeight;
+      const cutRatio = this.cutWidth / this.cutHeight;
+
+      const cutRelativeX = this.originX / this.cutX
+      const cutRelativeY = this.originY / this.cutY
+
+      this.originX *= widthRatio;
+      this.originY *= heightRatio;
+
+      this.cutX = this.originX / cutRelativeX
+      this.cutY = this.originY / cutRelativeY
+
+      this.scaleWidth *= widthRatio;
+      this.scaleHeight = this.scaleWidth / ratio;
+
+      this.cutWidth *= widthRatio;
+      this.cutHeight = this.cutWidth / cutRatio;
+
+      this.canvas.width = newWidth
+      this.canvas.height = newHeight
+
+      const canvasAspect = this.canvas.width / this.canvas.height;
+      const imageAspect = this.image.width / this.image.height;
+
+      // if (imageAspect > canvasAspect) {
+      //   this.scale = (this.canvas.width) / this.image.width;
+      // } else {
+      //   this.scale = (this.canvas.height) / this.image.height;
+      // }
+      console.log(this.scale, canvasAspect, imageAspect);
+      this.draw()
+    });
   }
   private startDragging(event: MouseEvent) {
     if (event.buttons !== 1) return;
@@ -407,8 +447,8 @@ class CanvasImageManipulator {
 
     if (this.cropping) {
       this.drawCover()
-
     }
+
     this.drawImage()
 
     if (this.cropping) {
@@ -504,7 +544,7 @@ class CanvasImageManipulator {
   public startCrop() {
     this.cropping = true
 
-    this.onLoadImage()
+    this.onResetImage()
 
     this.cutX = this.originX - this.cutLineWidth / 2
     this.cutY = this.originY - this.cutLineWidth / 2
