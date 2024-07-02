@@ -239,12 +239,13 @@ class CanvasImageManipulator {
       const canvasAspect = this.canvas.width / this.canvas.height;
       const imageAspect = this.image.width / this.image.height;
 
-      // if (imageAspect > canvasAspect) {
-      //   this.scale = (this.canvas.width) / this.image.width;
-      // } else {
-      //   this.scale = (this.canvas.height) / this.image.height;
-      // }
-      console.log(this.scale, canvasAspect, imageAspect);
+      // TODO: 瞎几把写的
+      if (imageAspect > canvasAspect) {
+        this.scale = (this.canvas.width - this.originX * 2) / this.image.width;
+      } else {
+        this.scale = (this.canvas.height - this.originY * 2) / this.image.height;
+      }
+      // console.log(this.scale, canvasAspect, imageAspect);
       this.draw()
     });
   }
@@ -427,8 +428,8 @@ class CanvasImageManipulator {
     this.scale = newScale;
 
     // 计算新的宽度和高度
-    this.scaleWidth = this.image.width * this.scale;
-    this.scaleHeight = this.image.height * this.scale;
+    this.scaleWidth = this.scaleWidth * zoom;
+    this.scaleHeight = this.scaleHeight * zoom;
 
     this.cutWidth = this.cutWidth * zoom;
     this.cutHeight = this.cutHeight * zoom;
