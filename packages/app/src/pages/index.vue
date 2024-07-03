@@ -241,9 +241,9 @@ class CanvasImageManipulator {
 
       // TODO: 瞎几把写的
       if (imageAspect > canvasAspect) {
-        this.scale = (this.canvas.width - this.originX * 2) / this.image.width;
+        this.scale = (this.canvas.width) / this.image.width;
       } else {
-        this.scale = (this.canvas.height - this.originY * 2) / this.image.height;
+        this.scale = (this.canvas.height) / this.image.height;
       }
       // console.log(this.scale, canvasAspect, imageAspect);
       this.draw()
