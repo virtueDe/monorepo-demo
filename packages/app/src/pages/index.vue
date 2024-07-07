@@ -114,6 +114,14 @@ class CanvasImageManipulator {
   private originX: number = 0;
   private originY: number = 0;
 
+  private sourceX: number = 0;
+  private sourceY: number = 0;
+  private sourceWidth: number = 0;
+  private sourceHeight: number = 0;
+
+
+  private isEndCrop: boolean = false;
+
   /**
     * @description: 上次的坐标点
     */
@@ -168,7 +176,7 @@ class CanvasImageManipulator {
     this.image.src = src;
     this.image.onload = () => {
       this.onResetImage()
-      this.drawImage()
+      this.draw()
     };
   }
   private onResetImage() {
@@ -450,6 +458,13 @@ class CanvasImageManipulator {
       this.drawCover()
     }
 
+    if (!this.isEndCrop) {
+      this.sourceWidth = this.image.width;
+      this.sourceHeight = this.image.height;
+      this.sourceX = 0;
+      this.sourceY = 0;
+    }
+
     this.drawImage()
 
     if (this.cropping) {
@@ -461,7 +476,7 @@ class CanvasImageManipulator {
     this.ctx.save()
     this.ctx.globalCompositeOperation = "destination-over"
     // 绘制图片
-    this.ctx.drawImage(this.image, this.originX, this.originY, this.scaleWidth, this.scaleHeight);
+    this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, this.originY, this.scaleWidth, this.scaleHeight);
     this.ctx.restore()
   }
 
@@ -552,15 +567,23 @@ class CanvasImageManipulator {
     this.cutWidth = this.scaleWidth + this.cutLineWidth
     this.cutHeight = this.scaleHeight + this.cutLineWidth
 
-
-    // this.cutX = this.originX + 50
-    // this.cutY = this.originY + 50
-    // this.cutWidth = 100 * this.scale
-    // this.cutHeight = 100 * this.scale
     this.draw()
   }
   public endCrop() {
     this.cropping = false
+    this.isEndCrop = true
+
+    this.sourceX = (this.cutX - this.originX) / this.scale;
+    this.sourceY = (this.cutY - this.originY) / this.scale;
+    this.sourceWidth = this.cutWidth / this.scale;
+    this.sourceHeight = this.cutHeight / this.scale;
+
+    this.originX = this.cutX
+    this.originY = this.cutY
+    this.scaleWidth = this.cutWidth
+    this.scaleHeight = this.cutHeight
+
+    this.draw()
   }
 }
 
@@ -584,6 +607,10 @@ const imageFileName = ref('请上传图片')
 
 const scale = computed(() => {
 })
+
+const handleEndCrop = () => {
+  canvasInstance.value?.endCrop()
+}
 
 
 const handleChangeUpload = (event: Event) => {
@@ -626,9 +653,11 @@ const handleChangeUpload = (event: Event) => {
     <div flex-auto pos-relative class="bg-[#2D333C]">
       <canvas id="canvas" w-full h-full pos-absolute top-0 left-0></canvas>
     </div>
-    <div h-60px w-full class="bg-[#23292c]">
+    <div h-60px w-full class="bg-[#23292c]" flex justify-between>
       <input type="file" @change="handleChangeUpload($event)" id="uploadImage" accept="image/*">
       <div class=" color-[#fff]">{{ canvasInstance?.scale }}</div>
+
+      <div btn @click="handleEndCrop">确认裁剪</div>
     </div>
   </div>
 </template>
