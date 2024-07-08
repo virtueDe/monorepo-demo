@@ -179,6 +179,57 @@ class CanvasImageManipulator {
       this.draw()
     };
   }
+  public saveImage() {
+
+
+    var img = new Image()
+    img.crossOrigin = "anonymous";
+    img.src = this.image.src
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const width = this.sourceWidth;
+      const height = this.sourceHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(this.image, this.sourceX, this.sourceY, width, height, 0, 0, width, height);
+      const imageName = 'cropped-image.png';
+      canvas.toBlob((blob) => {
+        if (blob) {
+          // const editedFile = new File([blob], imageName, { type: blob.type });
+          const objectUrl = URL.createObjectURL(blob);
+          const linkElement = document.createElement('a');
+          linkElement.download = `${imageName}`;
+          linkElement.href = objectUrl;
+          linkElement.click();
+          URL.revokeObjectURL(objectUrl);
+        }
+      }, 'image/png');
+    }
+
+
+
+
+
+    // // 绘制裁剪区域的图像
+
+    // // document.body.appendChild(canvas);
+
+    // // 将canvas的内容转换为Data URL
+    // const dataURL = canvas.toDataURL('image/png');
+    // // 创建一个隐藏的a标签用于下载
+    // const link = document.createElement('a');
+    // link.href = dataURL;
+    // link.download = 'cropped-image.png';
+    // link.style.display = 'none';
+    // document.body.appendChild(link);
+    // // 触发点击事件以下载图片
+    // link.click();
+    // // 清理
+    // document.body.removeChild(link);
+  }
   private onResetImage() {
     const canvasAspect = this.canvas.width / this.canvas.height;
     const imageAspect = this.image.width / this.image.height;
@@ -612,6 +663,10 @@ const handleEndCrop = () => {
   canvasInstance.value?.endCrop()
 }
 
+const handleClickSavaImage = () => {
+  canvasInstance.value?.saveImage()
+}
+
 
 const handleChangeUpload = (event: Event) => {
   const input = event.target as HTMLInputElement;
@@ -647,13 +702,13 @@ const handleChangeUpload = (event: Event) => {
           :style="{ left: activeTranslateLeft + 'px' }"></div>
       </div>
       <div class="right" p-r-3>
-        <div btn>保存</div>
+        <div btn @click="handleClickSavaImage">保存</div>
       </div>
     </div>
     <div flex-auto pos-relative class="bg-[#2D333C]">
       <canvas id="canvas" w-full h-full pos-absolute top-0 left-0></canvas>
     </div>
-    <div h-60px w-full class="bg-[#23292c]" flex justify-between>
+    <div h-60px w-full class="bg-[#23292c]" flex justify-between items-center>
       <input type="file" @change="handleChangeUpload($event)" id="uploadImage" accept="image/*">
       <div class=" color-[#fff]">{{ canvasInstance?.scale }}</div>
 
