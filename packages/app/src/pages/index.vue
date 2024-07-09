@@ -20,7 +20,6 @@ const barItemRefs = ref<refItem[]>([]);
 const activeLine = ref<refItem>(null)
 
 
-
 interface BarItem {
   icon: string,
   title: string,
@@ -79,6 +78,14 @@ const initActiveTranslateLeft = (index: number) => {
 
 /**
  * @module: Image
+ * feature:
+ * 1. 基础画布功能：缩放、移动
+ * 2. 裁剪：
+ *     2.1：裁剪框裁剪图片
+ *     2.2：水平垂直图片翻转
+ *     2.3：图片旋转
+ * 3. 亮度： 自然饱和度、饱和度、温度、色调、色相、亮度、曝光度、
+ * 4. 滤镜：黑白滤镜、电影滤镜
  */
 
 class CanvasImageManipulator {
@@ -128,6 +135,8 @@ class CanvasImageManipulator {
   private lastX: number = 0;
   private lastY: number = 0;
 
+
+  private flip: 'normal' | 'horizontal' | 'vertical' = 'normal'
 
   /**
     * @description: 缩放后的宽度高度
@@ -179,8 +188,16 @@ class CanvasImageManipulator {
       this.draw()
     };
   }
+  public reversal(flipType: 'normal' | 'horizontal' | 'vertical' = 'horizontal') {
+    this.flip = flipType
+    // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    // this.ctx.save();
+    // this.ctx.scale(-1, 1);
+    // this.originX = -this.canvas.width + this.originX;
+    this.draw()
+    // this.ctx.restore()
+  }
   public saveImage() {
-
 
     var img = new Image()
     img.crossOrigin = "anonymous";
@@ -208,27 +225,6 @@ class CanvasImageManipulator {
         }
       }, 'image/png');
     }
-
-
-
-
-
-    // // 绘制裁剪区域的图像
-
-    // // document.body.appendChild(canvas);
-
-    // // 将canvas的内容转换为Data URL
-    // const dataURL = canvas.toDataURL('image/png');
-    // // 创建一个隐藏的a标签用于下载
-    // const link = document.createElement('a');
-    // link.href = dataURL;
-    // link.download = 'cropped-image.png';
-    // link.style.display = 'none';
-    // document.body.appendChild(link);
-    // // 触发点击事件以下载图片
-    // link.click();
-    // // 清理
-    // document.body.removeChild(link);
   }
   private onResetImage() {
     const canvasAspect = this.canvas.width / this.canvas.height;
@@ -389,8 +385,16 @@ class CanvasImageManipulator {
 
         }
       } else {
-        this.originX += dx;
-        this.originY += dy;
+        if (this.flip === 'horizontal') {
+          this.originX -= dx;
+          this.originY += dy;
+        } else if (this.flip === 'vertical') {
+          this.originX += dx;
+          this.originY -= dy;
+        } else if (this.flip === 'normal') {
+          this.originX += dx;
+          this.originY += dy;
+        }
       }
       this.draw()
     } else {
@@ -507,6 +511,7 @@ class CanvasImageManipulator {
 
     if (this.cropping) {
       this.drawCover()
+      this.drawCutBox()
     }
 
     if (!this.isEndCrop) {
@@ -517,17 +522,22 @@ class CanvasImageManipulator {
     }
 
     this.drawImage()
-
-    if (this.cropping) {
-      this.drawCutBox()
-    }
   }
 
   private drawImage() {
     this.ctx.save()
     this.ctx.globalCompositeOperation = "destination-over"
+    if (this.flip === 'horizontal') {
+      this.ctx.scale(-1, 1);
+      this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, -this.canvas.width + this.originX, this.originY, this.scaleWidth, this.scaleHeight);
+    } else if (this.flip === 'vertical') {
+      this.ctx.scale(1, -1);
+      this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, -this.canvas.height + this.originY, this.scaleWidth, this.scaleHeight);
+    } else if (this.flip === 'normal') {
+      this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, this.originY, this.scaleWidth, this.scaleHeight);
+    }
+
     // 绘制图片
-    this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, this.originY, this.scaleWidth, this.scaleHeight);
     this.ctx.restore()
   }
 
@@ -604,7 +614,7 @@ class CanvasImageManipulator {
     this.ctx.save()
     this.ctx.fillStyle = "rgba(0,0,0,0.5)"
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
-    this.ctx.globalCompositeOperation = "source-atop"
+    // this.ctx.globalCompositeOperation = "source-atop"
     this.ctx.clearRect(this.cutX, this.cutY, this.cutWidth, this.cutHeight);
     this.ctx.restore()
   }
@@ -660,7 +670,7 @@ const scale = computed(() => {
 })
 
 const handleEndCrop = () => {
-  canvasInstance.value?.endCrop()
+  canvasInstance.value?.reversal()
 }
 
 const handleClickSavaImage = () => {
