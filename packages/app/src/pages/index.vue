@@ -126,6 +126,9 @@ class CanvasImageManipulator {
   private sourceWidth: number = 0;
   private sourceHeight: number = 0;
 
+  private canvasOriginalWidth: number = 0;
+  private canvasOriginalHeight: number = 0;
+
 
   private isEndCrop: boolean = false;
 
@@ -173,11 +176,12 @@ class CanvasImageManipulator {
   constructor(canvasId: string) {
     this.dpi = window.devicePixelRatio || 1;
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    // this.canvas.width = this.canvas.parentElement!.clientWidth * this.dpi;
-    // this.canvas.height = this.canvas.parentElement!.clientHeight * this.dpi;
-    this.canvas.width = this.canvas.parentElement!.clientWidth;
-    this.canvas.height = this.canvas.parentElement!.clientHeight;
+    this.canvas.width = this.canvas.parentElement!.clientWidth * this.dpi;
+    this.canvas.height = this.canvas.parentElement!.clientHeight * this.dpi;
+    this.canvasOriginalWidth = this.canvas.parentElement!.clientWidth;
+    this.canvasOriginalHeight = this.canvas.parentElement!.clientHeight;
     this.ctx = this.canvas.getContext('2d')!;
+    this.ctx.scale(this.dpi, this.dpi)
     this.initEventListeners();
   }
   public loadImage(src: string) {
@@ -227,20 +231,20 @@ class CanvasImageManipulator {
     }
   }
   private onResetImage() {
-    const canvasAspect = this.canvas.width / this.canvas.height;
+    const canvasAspect = this.canvasOriginalWidth / this.canvasOriginalHeight;
     const imageAspect = this.image.width / this.image.height;
 
     if (imageAspect > canvasAspect) {
-      this.baseScale = (this.canvas.width - 2 * this.margin) / this.image.width;
+      this.baseScale = (this.canvasOriginalWidth - 2 * this.margin) / this.image.width;
     } else {
-      this.baseScale = (this.canvas.height - 2 * this.margin) / this.image.height;
+      this.baseScale = (this.canvasOriginalHeight - 2 * this.margin) / this.image.height;
     }
 
     this.scale = this.baseScale;
 
     // 计算初始位置，使得图片居中
-    this.originX = (this.canvas.width - this.image.width * this.scale) / 2;
-    this.originY = (this.canvas.height - this.image.height * this.scale) / 2;
+    this.originX = (this.canvasOriginalWidth - this.image.width * this.scale) / 2;
+    this.originY = (this.canvasOriginalHeight - this.image.height * this.scale) / 2;
 
     // 计算新的宽度和高度
     this.scaleWidth = this.image.width * this.scale;
@@ -264,44 +268,68 @@ class CanvasImageManipulator {
     this.canvas.addEventListener('wheel', this.zoomImage.bind(this));
 
     window.addEventListener('resize', () => {
+      // const newWidth = this.canvas.parentElement!.clientWidth;
+      // const newHeight = this.canvas.parentElement!.clientHeight
 
-      const newWidth = this.canvas.parentElement!.clientWidth;
-      const newHeight = this.canvas.parentElement!.clientHeight
-      const widthRatio = newWidth / this.canvas.width;
-      const heightRatio = newHeight / this.canvas.height;
+      // // 重新计算位置和尺寸，保持比例
+      // this.originX = (this.originX / this.canvasOriginalWidth) * newWidth;
+      // this.originY = (this.originY / this.canvasOriginalHeight) * newHeight;
+      // const r = (this.scaleWidth / this.scaleHeight)
+      // this.scaleWidth = (this.scaleWidth / this.canvasOriginalWidth) * newWidth;
+      // this.scaleHeight = this.scaleHeight * r;
 
-      const ratio = this.scaleWidth / this.scaleHeight;
-      const cutRatio = this.cutWidth / this.cutHeight;
 
-      const cutRelativeX = this.originX / this.cutX
-      const cutRelativeY = this.originY / this.cutY
 
-      this.originX *= widthRatio;
-      this.originY *= heightRatio;
+      // // 重新计算位置和尺寸，保持比例
+      // this.originX = (this.originX / newWidth) * this.canvasOriginalWidth;
+      // this.originY = (this.originY / newHeight) * this.canvasOriginalHeight;
+      // this.scaleWidth = (this.scaleWidth / newWidth) * this.canvasOriginalWidth;
+      // this.scaleHeight = (this.scaleHeight / newHeight) * this.canvasOriginalHeight;
 
-      this.cutX = this.originX / cutRelativeX
-      this.cutY = this.originY / cutRelativeY
 
-      this.scaleWidth *= widthRatio;
-      this.scaleHeight = this.scaleWidth / ratio;
+      // const widthRatio = newWidth / this.canvas.width;
+      // const heightRatio = newHeight / this.canvas.height;
 
-      this.cutWidth *= widthRatio;
-      this.cutHeight = this.cutWidth / cutRatio;
+      // const ratio = this.scaleWidth / this.scaleHeight;
+      // const cutRatio = this.cutWidth / this.cutHeight;
 
-      this.canvas.width = newWidth
-      this.canvas.height = newHeight
+      // const cutRelativeX = this.originX / this.cutX
+      // const cutRelativeY = this.originY / this.cutY
 
-      const canvasAspect = this.canvas.width / this.canvas.height;
-      const imageAspect = this.image.width / this.image.height;
+      // this.originX *= widthRatio;
+      // this.originY *= heightRatio;
 
-      // TODO: 瞎几把写的
-      if (imageAspect > canvasAspect) {
-        this.scale = (this.canvas.width) / this.image.width;
-      } else {
-        this.scale = (this.canvas.height) / this.image.height;
-      }
+      // this.cutX = this.originX / cutRelativeX
+      // this.cutY = this.originY / cutRelativeY
+
+      // this.scaleWidth *= widthRatio;
+      // this.scaleHeight = this.scaleWidth / ratio;
+
+      // this.cutWidth *= widthRatio;
+      // this.cutHeight = this.cutWidth / cutRatio;
+
+      // this.canvas.width = newWidth * this.dpi
+      // this.canvas.height = newHeight * this.dpi
+
+      // const canvasAspect = this.canvas.width / this.canvas.height;
+      // const imageAspect = this.image.width / this.image.height;
+
+      // // TODO: 瞎几把写的
+      // if (imageAspect > canvasAspect) {
+      //   this.scale = (this.canvas.width) / this.image.width;
+      // } else {
+      //   this.scale = (this.canvas.height) / this.image.height;
+      // }
       // console.log(this.scale, canvasAspect, imageAspect);
-      this.draw()
+      // this.onResetImage()
+
+      // this.canvas.width = newWidth * this.dpi
+      // this.canvas.height = newHeight * this.dpi
+      // this.canvasOriginalWidth = newWidth
+      // this.canvasOriginalHeight = newHeight
+      // this.draw()
+      // this.canvasOriginalWidth = newWidth
+      // this.canvasOriginalHeight = newHeight
     });
   }
   private startDragging(event: MouseEvent) {
@@ -520,7 +548,6 @@ class CanvasImageManipulator {
       this.sourceX = 0;
       this.sourceY = 0;
     }
-
     this.drawImage()
   }
 
@@ -722,7 +749,9 @@ const handleChangeUpload = (event: Event) => {
       <input type="file" @change="handleChangeUpload($event)" id="uploadImage" accept="image/*">
       <div class=" color-[#fff]">{{ canvasInstance?.scale }}</div>
 
-      <div btn @click="handleEndCrop">确认裁剪</div>
+      <div btn @click="handleEndCrop">
+        确认裁剪
+      </div>
     </div>
   </div>
 </template>
