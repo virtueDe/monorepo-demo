@@ -121,6 +121,8 @@ class CanvasImageManipulator {
   private originX: number = 0;
   private originY: number = 0;
 
+  private angle: number = 0;
+
   private sourceX: number = 0;
   private sourceY: number = 0;
   private sourceWidth: number = 0;
@@ -187,6 +189,7 @@ class CanvasImageManipulator {
   public loadImage(src: string) {
     if (!src) return
     this.image.src = src;
+    this.image.crossOrigin = 'anonymous'
     this.image.onload = () => {
       this.onResetImage()
       this.draw()
@@ -229,6 +232,125 @@ class CanvasImageManipulator {
         }
       }, 'image/png');
     }
+  }
+  public changeLuminance(value: number) {
+    const data = this.ctx.getImageData(this.originX * this.dpi, this.originY * this.dpi, this.scaleWidth * this.dpi, this.scaleHeight * this.dpi)
+
+    const luminance = (imgData: ImageData, value: number) => {
+      const data = imgData.data
+      for (let i = 0; i < data.length; i += 4) {
+        const hsv = this.rgb2hsv([data[i], data[i + 1], data[i + 2]])
+        hsv[2] *= (1 + value)
+        const rgb = this.hsv2rgb([...hsv])
+        data[i] = rgb[0];
+        data[i + 1] = rgb[1];
+        data[i + 2] = rgb[2];
+      }
+      return imgData
+    }
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    console.log(this.originX, this.originY, this.scaleWidth, this.scaleHeight);
+    this.ctx.putImageData(luminance(data, -0.5), this.originX * this.dpi, this.originY * this.dpi, 0, 0, this.scaleWidth * this.dpi, this.scaleHeight * this.dpi)
+    // this.ctx.putImageData(luminance(data, -0.5), 0, 0)
+    // 绘制裁剪框
+    // this.ctx.strokeStyle = 'rgba(255,255,255)'
+    // this.ctx.lineWidth = this.cutLineWidth
+    // this.ctx.strokeRect(this.originX, this.originY, this.scaleWidth += this.scaleWidth * this.dpi, this.scaleHeight += this.scaleHeight * this.dpi)
+  }
+
+  private hsv2rgb(hsv: number[]) {
+    let _l = hsv[0];
+    let _m = hsv[1];
+    let _n = hsv[2];
+    let newR = 0;
+    let newG = 0;
+    let newB = 0;
+    if (_m === 0) {
+      _l = _m = _n = Math.round(255 * _n / 100);
+      newR = _l;
+      newG = _m;
+      newB = _n;
+    } else {
+      _m = _m / 100;
+      _n = _n / 100;
+      let p = Math.floor(_l / 60) % 6;
+      let f = _l / 60 - p;
+      let a = _n * (1 - _m);
+      let b = _n * (1 - _m * f);
+      let c = _n * (1 - _m * (1 - f));
+      switch (p) {
+        case 0:
+          newR = _n; newG = c; newB = a;
+          break;
+        case 1:
+          newR = b; newG = _n; newB = a;
+          break;
+        case 2:
+          newR = a; newG = _n; newB = c;
+          break;
+        case 3:
+          newR = a; newG = b; newB = _n;
+          break;
+        case 4:
+          newR = c; newG = a; newB = _n;
+          break;
+        case 5:
+          newR = _n; newG = a; newB = b;
+          break;
+      }
+      newR = Math.round(255 * newR);
+      newG = Math.round(255 * newG);
+      newB = Math.round(255 * newB);
+    }
+    return [newR, newG, newB]
+  }
+  private rgb2hsv(arr: number[]) {
+    let rr;
+    let gg;
+    let bb;
+    let r = arr[0] / 255;
+    let g = arr[1] / 255;
+    let b = arr[2] / 255;
+    let h = 0;
+    let s = 0;
+    let v = Math.max(r, g, b);
+    let diff = v - Math.min(r, g, b);
+    let diffc = function (c: number) {
+      return (v - c) / 6 / diff + 1 / 2;
+    };
+
+    if (diff === 0) {
+      h = s = 0;
+    } else {
+      s = diff / v;
+      rr = diffc(r);
+      gg = diffc(g);
+      bb = diffc(b);
+
+      if (r === v) {
+        h = bb - gg;
+      } else if (g === v) {
+        h = (1 / 3) + rr - bb;
+      } else if (b === v) {
+        h = (2 / 3) + gg - rr;
+      }
+      if (h < 0) {
+        h += 1;
+      } else if (h > 1) {
+        h -= 1;
+      }
+    }
+    return [Math.round(h * 360), Math.round(s * 100), Math.round(v * 100)]
+  }
+  public rotation(deg: number) {
+    // console.log(deg);
+    this.angle = deg
+    // canvas 图片旋转
+    // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+    // this.ctx.rotate(deg * Math.PI / 180);
+    // this.ctx.drawImage(this.image, -this.image.width / 2, -this.image.height / 2);
+    this.draw()
   }
   private onResetImage() {
     const canvasAspect = this.canvasOriginalWidth / this.canvasOriginalHeight;
@@ -554,17 +676,19 @@ class CanvasImageManipulator {
   private drawImage() {
     this.ctx.save()
     this.ctx.globalCompositeOperation = "destination-over"
-    if (this.flip === 'horizontal') {
-      this.ctx.scale(-1, 1);
-      this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, -this.canvas.width + this.originX, this.originY, this.scaleWidth, this.scaleHeight);
-    } else if (this.flip === 'vertical') {
-      this.ctx.scale(1, -1);
-      this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, -this.canvas.height + this.originY, this.scaleWidth, this.scaleHeight);
-    } else if (this.flip === 'normal') {
-      this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, this.originY, this.scaleWidth, this.scaleHeight);
-    }
+    // if (this.flip === 'horizontal') {
+    //   this.ctx.scale(-1, 1);
+    //   this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, -this.canvas.width + this.originX, this.originY, this.scaleWidth, this.scaleHeight);
+    // } else if (this.flip === 'vertical') {
+    //   this.ctx.scale(1, -1);
+    //   this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, -this.canvas.height + this.originY, this.scaleWidth, this.scaleHeight);
+    // } else if (this.flip === 'normal') {
+    //   this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, this.originY, this.scaleWidth, this.scaleHeight);
+    // }
 
-    // 绘制图片
+    this.ctx.translate(this.originX + this.scaleWidth / 2, this.originY + this.scaleHeight / 2);
+    this.ctx.rotate(this.angle * Math.PI / 180);
+    this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, -this.scaleWidth / 2, -this.scaleHeight / 2, this.scaleWidth, this.scaleHeight);
     this.ctx.restore()
   }
 
@@ -684,7 +808,7 @@ const canvasInstance = shallowRef<CanvasImageManipulator | null>(null)
 onMounted(() => {
   canvasInstance.value = new CanvasImageManipulator('canvas')
 
-  canvasInstance.value?.loadImage('https://via.placeholder.com/1600x500');
+  canvasInstance.value?.loadImage('https://picsum.photos/id/237/300/300');
   // canvasInstance.value.
   // setInterval(() => {
   //   console.log(canvasInstanceObj.value.instance, canvasInstanceObj.value.instance?.scale);
@@ -721,6 +845,12 @@ const handleChangeUpload = (event: Event) => {
     reader.readAsDataURL(input.files[0]);
   }
 }
+const handleDragRange = (event: InputEvent) => {
+  console.log((event.target as HTMLInputElement).value);
+
+  canvasInstance.value?.changeLuminance(Number((event.target as HTMLInputElement).value))
+  // canvasInstance.value?.rotation(Number((event.target as HTMLInputElement).value))
+}
 </script>
 
 <template>
@@ -748,7 +878,7 @@ const handleChangeUpload = (event: Event) => {
     <div h-60px w-full class="bg-[#23292c]" flex justify-between items-center>
       <input type="file" @change="handleChangeUpload($event)" id="uploadImage" accept="image/*">
       <div class=" color-[#fff]">{{ canvasInstance?.scale }}</div>
-
+      <input type="range" max="360" value="0" min="0" step="1" @input="handleDragRange($event as InputEvent)">
       <div btn @click="handleEndCrop">
         确认裁剪
       </div>
