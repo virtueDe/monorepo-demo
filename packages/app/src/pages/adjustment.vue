@@ -6,6 +6,13 @@
 
 <script>
 export default {
+
+  // canvas操作-修改图片亮度 https://www.cnblogs.com/suyuanli/p/14541067.html#javascript%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81-1
+  // canvas渲染网络图片(旋转，灰阶，饱和度操作)并保存到本地 https://blog.csdn.net/qq_35321405/article/details/79786977
+  // 神奇canvas 带你实现魔法摄像头 https://juejin.cn/post/7264125562393788473?searchId=2024071514153402ACCCA792C396EF180B
+  // 用 canvas 2D 实现图片美化 https://juejin.cn/post/6951694989311082504?searchId=2024071514153402ACCCA792C396EF180B
+  // html5 canvas系列教程 - 像素操作(反色,黑白,亮度,复古,蒙版,透明)  https://www.cnblogs.com/ghostwu/p/7606009.html
+  // js操作像素实现图片编辑 https://juejin.cn/post/7045935743037866020
   name: 'adjustment',
   data() {
     return {
