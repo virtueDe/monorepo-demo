@@ -9,12 +9,44 @@ export default {
 
   // canvas操作-修改图片亮度 https://www.cnblogs.com/suyuanli/p/14541067.html#javascript%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81-1
   // canvas渲染网络图片(旋转，灰阶，饱和度操作)并保存到本地 https://blog.csdn.net/qq_35321405/article/details/79786977
-  // 神奇canvas 带你实现魔法摄像头 https://juejin.cn/post/7264125562393788473?searchId=2024071514153402ACCCA792C396EF180B
-  // 用 canvas 2D 实现图片美化 https://juejin.cn/post/6951694989311082504?searchId=2024071514153402ACCCA792C396EF180B
-  // html5 canvas系列教程 - 像素操作(反色,黑白,亮度,复古,蒙版,透明)  https://www.cnblogs.com/ghostwu/p/7606009.html
-  // js操作像素实现图片编辑 https://juejin.cn/post/7045935743037866020
+  // 用 canvas 2D 实现图片美化 https://juejin.cn/post/6951694989311082504?searchId=2024071514153402ACCCA792C396EF180B  // Canvas 10款基础滤镜（原理篇） https://juejin.cn/post/7119893640264024071
   name: 'adjustment',
   data() {
+    // 饱和度
+    //     const canvas = document.getElementById('myCanvas');
+    // const ctx = canvas.getContext('2d');
+
+    // const img = new Image();
+    // img.src = 'path/to/your/image.jpg';
+    // img.onload = function() {
+    //   canvas.width = img.width;
+    //   canvas.height = img.height;
+
+    //   // 绘制原图到canvas
+    //   ctx.drawImage(img, 0, 0);
+
+    //   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    //   const data = imageData.data;
+
+    //   // 遍历每个像素，调整饱和度
+    //   for (let i = 0; i < data.length; i += 4) {
+    //     const r = data[i];
+    //     const g = data[i + 1];
+    //     const b = data[i + 2];
+
+    //     // 计算平均灰度值
+    //     const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+
+    //     // 调整饱和度，例如降低50%
+    //     const saturationFactor = 0.5;
+    //     data[i]     = r * saturationFactor + gray * (1 - saturationFactor); // red
+    //     data[i + 1] = g * saturationFactor + gray * (1 - saturationFactor); // green
+    //     data[i + 2] = b * saturationFactor + gray * (1 - saturationFactor); // blue
+    //   }
+
+    //   // 将修改后的像素数据重新绘制到canvas
+    //   ctx.putImageData(imageData, 0, 0);
+    // };
     return {
       brightness: 1,
       contrast: 1,
@@ -60,18 +92,18 @@ export default {
         let g = data[i + 1];
         let b = data[i + 2];
 
-        // Adjust brightness
+        // 亮度
         r = Math.min(r * (1 + this.brightness), 255);
         g = Math.min(g * (1 + this.brightness), 255);
         b = Math.min(b * (1 + this.brightness), 255);
 
-        // // Adjust contrast
+        // 对比度
         // const avg = (r + g + b) / 3;
         // r = Math.min(Math.max(((r - avg) * this.contrast) + avg + 128 * (this.contrast - 1), 0), 255);
         // g = Math.min(Math.max(((g - avg) * this.contrast) + avg + 128 * (this.contrast - 1), 0), 255);
         // b = Math.min(Math.max(((b - avg) * this.contrast) + avg + 128 * (this.contrast - 1), 0), 255);
 
-        // // Adjust exposure
+        // 曝光
         // r = Math.min(r + this.exposure, 255);
         // g = Math.min(g + this.exposure, 255);
         // b = Math.min(b + this.exposure, 255);
