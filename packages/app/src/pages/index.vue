@@ -210,7 +210,9 @@ class CanvasImageManipulator {
     this.canvasOriginalWidth = this.canvas.parentElement!.clientWidth;
     this.canvasOriginalHeight = this.canvas.parentElement!.clientHeight;
     this.ctx = this.canvas.getContext('2d')!;
+    this.ctx.save()
     this.ctx.scale(this.dpi, this.dpi)
+    this.ctx.restore()
     this.initEventListeners();
   }
   public loadImage(src: string) {
@@ -415,68 +417,39 @@ class CanvasImageManipulator {
     this.canvas.addEventListener('wheel', this.zoomImage.bind(this));
 
     window.addEventListener('resize', () => {
-      // const newWidth = this.canvas.parentElement!.clientWidth;
-      // const newHeight = this.canvas.parentElement!.clientHeight
+      const newWidth = this.canvas.parentElement!.clientWidth;
+      const newHeight = this.canvas.parentElement!.clientHeight
 
-      // // 重新计算位置和尺寸，保持比例
-      // this.originX = (this.originX / this.canvasOriginalWidth) * newWidth;
-      // this.originY = (this.originY / this.canvasOriginalHeight) * newHeight;
-      // const r = (this.scaleWidth / this.scaleHeight)
-      // this.scaleWidth = (this.scaleWidth / this.canvasOriginalWidth) * newWidth;
-      // this.scaleHeight = this.scaleHeight * r;
+      const ratio = newWidth / this.canvasOriginalWidth
 
+      this.originX *= ratio
+      this.originY *= ratio
+      this.scaleWidth *= ratio
+      this.scaleHeight *= ratio
 
+      this.textAttribute.X *= ratio
+      this.textAttribute.y *= ratio
+      this.textAttribute.fontSize *= ratio
 
-      // // 重新计算位置和尺寸，保持比例
-      // this.originX = (this.originX / newWidth) * this.canvasOriginalWidth;
-      // this.originY = (this.originY / newHeight) * this.canvasOriginalHeight;
-      // this.scaleWidth = (this.scaleWidth / newWidth) * this.canvasOriginalWidth;
-      // this.scaleHeight = (this.scaleHeight / newHeight) * this.canvasOriginalHeight;
+      this.cutX *= ratio
+      this.cutY *= ratio
+      this.cutWidth *= ratio
+      this.cutHeight *= ratio
 
+      for (let index = 0; index < this.pathData.length; index++) {
+        const point = this.pathData[index];
+        point.x *= ratio
+        point.y *= ratio
+      }
 
-      // const widthRatio = newWidth / this.canvas.width;
-      // const heightRatio = newHeight / this.canvas.height;
+      this.canvasOriginalWidth = newWidth;
+      this.canvasOriginalHeight = newHeight;
 
-      // const ratio = this.scaleWidth / this.scaleHeight;
-      // const cutRatio = this.cutWidth / this.cutHeight;
+      this.canvas.width = newWidth * this.dpi
+      this.canvas.height = newHeight * this.dpi
 
-      // const cutRelativeX = this.originX / this.cutX
-      // const cutRelativeY = this.originY / this.cutY
+      this.draw()
 
-      // this.originX *= widthRatio;
-      // this.originY *= heightRatio;
-
-      // this.cutX = this.originX / cutRelativeX
-      // this.cutY = this.originY / cutRelativeY
-
-      // this.scaleWidth *= widthRatio;
-      // this.scaleHeight = this.scaleWidth / ratio;
-
-      // this.cutWidth *= widthRatio;
-      // this.cutHeight = this.cutWidth / cutRatio;
-
-      // this.canvas.width = newWidth * this.dpi
-      // this.canvas.height = newHeight * this.dpi
-
-      // const canvasAspect = this.canvas.width / this.canvas.height;
-      // const imageAspect = this.image.width / this.image.height;
-
-      // // TODO: 瞎几把写的
-      // if (imageAspect > canvasAspect) {
-      //   this.scale = (this.canvas.width) / this.image.width;
-      // } else {
-      //   this.scale = (this.canvas.height) / this.image.height;
-      // }
-      // console.log(this.scale, canvasAspect, imageAspect);
-      // this.onResetImage()
-
-      // this.canvas.width = newWidth * this.dpi
-      // this.canvas.height = newHeight * this.dpi
-      // this.canvasOriginalWidth = newWidth
-      // this.canvasOriginalHeight = newHeight
-      // this.draw()
-      // this.canvasOriginalWidth = newWidth
-      // this.canvasOriginalHeight = newHeight
     });
   }
   private startDragging(event: MouseEvent) {
@@ -682,8 +655,8 @@ class CanvasImageManipulator {
   private zoomImage(event: WheelEvent) {
     event.preventDefault();
 
-    const mouseX = event.offsetX;
-    const mouseY = event.offsetY;
+    let mouseX = event.offsetX;
+    let mouseY = event.offsetY;
 
     const wheel = event.deltaY < 0 ? 1 : -1;
     const zoom = Math.exp(wheel * 0.1);
@@ -692,15 +665,19 @@ class CanvasImageManipulator {
 
     if (newScale < this.baseScale * this.minScale || newScale > this.baseScale * this.maxScale) return;
 
-    const relativeX = this.originX - this.cutX
-    const relativeY = this.originY - this.cutY
+
+    // // 计算按照鼠标点进行缩放计算
+    // this.originX = mouseX - (mouseX - this.originX) * zoom;
+    // this.originY = mouseY - (mouseY - this.originY) * zoom;
+
 
     // 计算按照鼠标点进行缩放计算
-    this.originX = mouseX - (mouseX - this.originX) * zoom;
-    this.originY = mouseY - (mouseY - this.originY) * zoom;
+    this.originX = (this.originX - mouseX) * zoom + mouseX;
+    this.originY = (this.originY - mouseY) * zoom + mouseY;
 
-    this.cutX = this.originX - relativeX * zoom
-    this.cutY = this.originY - relativeY * zoom
+
+    this.cutX = (this.cutX - mouseX) * zoom + mouseX
+    this.cutY = (this.cutY - mouseY) * zoom + mouseY
 
     this.scale = newScale;
 
