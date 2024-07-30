@@ -9,3 +9,13 @@ body,
 html.dark {
   background: #121212;
 }
+
+:root {
+  --primary-color: #4CC2FF;
+
+  /* 其他颜色变量 */
+  /* --secondary-color: #fadb14;
+  --error-color: #f5222d;
+  --warning-color: #faad14;
+  --success-color: #52c41a; */
+}

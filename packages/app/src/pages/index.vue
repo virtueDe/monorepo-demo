@@ -28,24 +28,35 @@ interface BarItem {
 
 const barOption = ref<BarItem[]>([
   {
+    icon: 'i-carbon:cursor-2',
+    title: '查看',
+    handle: () => {
+      canvasInstance.value?.startCrop()
+    }
+  },
+  {
     icon: 'i-carbon-cut-out',
     title: '裁剪',
     handle: () => {
       canvasInstance.value?.startCrop()
     }
-  }, {
+  },
+  {
     icon: 'i-carbon-awake',
     title: '亮度',
-  }, {
+  },
+  {
     icon: 'i-carbon-brush-freehand',
     title: '画笔',
     handle: () => {
       canvasInstance.value?.drawLine()
     }
-  }, {
+  },
+  {
     icon: 'i-carbon-edge-enhancement',
     title: '滤镜',
-  }, {
+  },
+  {
     icon: 'i-carbon-text-small-caps',
     title: '文字',
   },
@@ -70,13 +81,15 @@ const setBarItemRefs = (el: refItem) => {
 };
 
 const initActiveTranslateLeft = (index: number) => {
-  let marginLeft = parseInt(window.getComputedStyle(barItemRefs.value[index] as Element).marginLeft);
-  let marginRight = parseInt(window.getComputedStyle(barItemRefs.value[index] as Element).marginRight);
-  const b_offsetWidth = (barItemRefs.value[index] as HTMLElement).offsetWidth + marginLeft + marginRight
+  let marginTop = parseInt(window.getComputedStyle(barItemRefs.value[index] as Element).marginTop);
+  let marginBottom = parseInt(window.getComputedStyle(barItemRefs.value[index] as Element).marginBottom);
 
-  const A_offsetWidth = (activeLine.value as HTMLElement).offsetWidth
+
+  const b_offsetHeight = (barItemRefs.value[index] as HTMLElement).offsetHeight + marginTop + marginBottom
+  console.log(marginTop, marginBottom, b_offsetHeight);
+  const a_offsetHeight = (activeLine.value as HTMLElement).offsetHeight
   // 计算下划线位置
-  activeTranslateLeft.value = b_offsetWidth * index + (b_offsetWidth - A_offsetWidth) / 2;
+  activeTranslateLeft.value = b_offsetHeight * index + (b_offsetHeight - a_offsetHeight) / 2;
 }
 
 /**
@@ -205,13 +218,15 @@ class CanvasImageManipulator {
   constructor(canvasId: string) {
     this.dpi = window.devicePixelRatio || 1;
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    this.canvas.width = this.canvas.parentElement!.clientWidth * this.dpi;
-    this.canvas.height = this.canvas.parentElement!.clientHeight * this.dpi;
+    // this.canvas.width = this.canvas.parentElement!.clientWidth * this.dpi;
+    // this.canvas.height = this.canvas.parentElement!.clientHeight * this.dpi;
+    this.canvas.width = this.canvas.parentElement!.clientWidth;
+    this.canvas.height = this.canvas.parentElement!.clientHeight;
     this.canvasOriginalWidth = this.canvas.parentElement!.clientWidth;
     this.canvasOriginalHeight = this.canvas.parentElement!.clientHeight;
     this.ctx = this.canvas.getContext('2d')!;
     this.ctx.save()
-    this.ctx.scale(this.dpi, this.dpi)
+    // this.ctx.scale(this.dpi, this.dpi)
     this.ctx.restore()
     this.initEventListeners();
   }
@@ -900,9 +915,9 @@ const canvasInstance = shallowRef<CanvasImageManipulator | null>(null)
 // })
 
 onMounted(() => {
-  canvasInstance.value = new CanvasImageManipulator('canvas')
+  // canvasInstance.value = new CanvasImageManipulator('canvas')
 
-  canvasInstance.value?.loadImage('https://picsum.photos/id/237/300/300');
+  // canvasInstance.value?.loadImage('https://picsum.photos/id/237/300/300');
   // canvasInstance.value.
   // setInterval(() => {
   //   console.log(canvasInstanceObj.value.instance, canvasInstanceObj.value.instance?.scale);
@@ -949,25 +964,36 @@ const handleDragRange = (event: InputEvent) => {
 
 <template>
   <div w-full h-full flex flex-col>
-    <div h-50px w-full class="bg-[#1A212B] color-[#fff]" flex justify-between items-center>
+    <div h-60px w-full class="bg-[#1A212B] color-[#fff]" flex justify-between items-center>
       <div flex h-full items-center>
-        <div rel="noreferrer" href="javascript:0" h-full w-50px flex justify-center items-center class="bg-[#2D333C]">
+        <div rel="noreferrer" href="javascript:0" h-full w-60px flex justify-center items-center class="bg-[#2D333C]">
           <div class="i-carbon-image-copy" font-size="25px"></div>
         </div>
         <div pl-3 max-w-200px truncate :title="imageFileName">{{ imageFileName }}</div>
       </div>
       <div flex font-size="22px" class="bar" pos-relative>
-        <div :class="[item.icon, 'bar-item-btn']" :title="item.title" :ref="setBarItemRefs"
+        <!-- <div :class="[item.icon, 'bar-item-btn']" :title="item.title" :ref="setBarItemRefs"
           v-for="(item, idx) in barOption" :key="idx" @click="handleChangeIndex(item, idx)"></div>
         <div class="active-line" ref="activeLine" pos-absolute w-18px h-5px left-0
-          :style="{ left: activeTranslateLeft + 'px' }"></div>
+          :style="{ left: activeTranslateLeft + 'px' }"></div> -->
       </div>
       <div class="right" p-r-3>
         <div btn @click="handleClickSavaImage">保存</div>
       </div>
     </div>
-    <div flex-auto pos-relative class="bg-[#2D333C]">
-      <canvas id="canvas" w-full h-full pos-absolute top-0 left-0></canvas>
+    <div flex-auto class="bg-[#2D333C] flex">
+      <div class="w-60px h-100% bg-[#2D333C] color-[#fff] flex flex-col items-center pos-relative">
+        <div class="h-60px w-60px cursor-pointer flex items-center justify-center" :title="item.title"
+          :ref="setBarItemRefs" v-for="(item, idx) in barOption" :key="idx" @click="handleChangeIndex(item, idx)">
+          <div :class="[item.icon]" class="font-size-22px hover:color-[#A9A9A9] transition duration-200 ease-in-out">
+          </div>
+        </div>
+        <div class="active-line pos-absolute w-6px h-30px right-0 top-0 bg-sky-500 transition-top" ref="activeLine"
+          :style="{ top: activeTranslateLeft + 'px' }"></div>
+      </div>
+      <div class="flex-auto bg-[#202020] border">
+        <canvas id="canvas"></canvas>
+      </div>
     </div>
     <div h-60px w-full class="bg-[#23292c]" flex justify-between items-center>
       <input type="file" @change="handleChangeUpload($event)" id="uploadImage" accept="image/*">
@@ -981,7 +1007,7 @@ const handleDragRange = (event: InputEvent) => {
 </template>
 
 <style scoped>
-.bar>div:is(.bar-item-btn) {
+/* .bar>div:is(.bar-item-btn) {
   cursor: pointer;
   margin: 0px 8px;
 }
@@ -995,5 +1021,5 @@ const handleDragRange = (event: InputEvent) => {
   bottom: 0;
   transform: translateY(120%);
   transition: left 0.3s ease;
-}
+} */
 </style>
