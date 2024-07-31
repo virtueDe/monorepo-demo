@@ -966,10 +966,19 @@ const handleDragRange = (event: InputEvent) => {
   <div w-full h-full flex flex-col>
     <div h-60px w-full class="bg-[#1A212B] color-[#fff]" flex justify-between items-center>
       <div flex h-full items-center>
-        <div rel="noreferrer" href="javascript:0" h-full w-60px flex justify-center items-center class="bg-[#2D333C]">
+        <div rel="noreferrer" href="javascript:0" h-full w-60px flex justify-center items-center class="bg-[#24262b]">
           <div class="i-carbon-image-copy" font-size="25px"></div>
         </div>
-        <div pl-3 max-w-200px truncate :title="imageFileName">{{ imageFileName }}</div>
+
+        <div>
+          <!-- <span pl-3 max-w-200px truncate :title="imageFileName">
+            {{ imageFileName }}
+          </span> -->
+          <div>
+            <!-- 点击 -->
+            <input type="file" @change="handleChangeUpload($event)" id="uploadImage" accept="image/*">
+          </div>
+        </div>
       </div>
       <div flex font-size="22px" class="bar" pos-relative>
         <!-- <div :class="[item.icon, 'bar-item-btn']" :title="item.title" :ref="setBarItemRefs"
@@ -977,32 +986,44 @@ const handleDragRange = (event: InputEvent) => {
         <div class="active-line" ref="activeLine" pos-absolute w-18px h-5px left-0
           :style="{ left: activeTranslateLeft + 'px' }"></div> -->
       </div>
-      <div class="right" p-r-3>
+      <div class="right p-r-3">
         <div btn @click="handleClickSavaImage">保存</div>
       </div>
     </div>
-    <div flex-auto class="bg-[#2D333C] flex">
-      <div class="w-60px h-100% bg-[#2D333C] color-[#fff] flex flex-col items-center pos-relative">
-        <div class="h-60px w-60px cursor-pointer flex items-center justify-center" :title="item.title"
-          :ref="setBarItemRefs" v-for="(item, idx) in barOption" :key="idx" @click="handleChangeIndex(item, idx)">
-          <div :class="[item.icon]" class="font-size-22px hover:color-[#A9A9A9] transition duration-200 ease-in-out">
+    <div class="flex pos-relative flex-auto">
+      <div class="h-100% color-[#fff] flex pos-relative">
+        <!-- menu bar -->
+        <div class="bg-[#292c31] pos-relative z-2">
+          <!-- :class="[currentBarIndex === idx ? 'bg-#1A212B' : '']" -->
+          <div class="group h-60px w-60px cursor-pointer flex items-center justify-center" :title="item.title"
+            :ref="setBarItemRefs" v-for="(item, idx) in barOption" :key="idx" @click="handleChangeIndex(item, idx)">
+            <div :class="[item.icon]"
+              class="font-size-22px group-hover:color-[#A9A9A9] transition duration-200 ease-in-out">
+            </div>
           </div>
+          <div class="active-line pos-absolute w-6px h-30px right-0 top-0 bg-sky-500 transition-top" ref="activeLine"
+            :style="{ top: activeTranslateLeft + 'px' }"></div>
         </div>
-        <div class="active-line pos-absolute w-6px h-30px right-0 top-0 bg-sky-500 transition-top" ref="activeLine"
-          :style="{ top: activeTranslateLeft + 'px' }"></div>
+        <!-- tool -->
+        <div
+          class="h-100% w-280px bg-#292c31 border-l-1  border-black border-solid pos-absolute top-0 z-1 transition-transform duration-350"
+          :class="[currentBarIndex !== 0 ? 'left-60px' : '-translate-x-100%']">
+          <div></div>
+        </div>
       </div>
-      <div class="flex-auto bg-[#202020] border">
+      <div class="flex-auto bg-[#202020] border pos-absolute top-0 transition-left duration-350"
+        :class="[currentBarIndex === 0 ? 'left-60px' : 'left-340px']">
         <canvas id="canvas"></canvas>
       </div>
     </div>
-    <div h-60px w-full class="bg-[#23292c]" flex justify-between items-center>
-      <input type="file" @change="handleChangeUpload($event)" id="uploadImage" accept="image/*">
-      <div class=" color-[#fff]">{{ canvasInstance?.scale }}</div>
+    <!-- <div h-40px w-full class="bg-[#23292c]" flex justify-between items-center> -->
+
+    <!-- <div class=" color-[#fff]">{{ canvasInstance?.scale }}</div>
       <input type="range" max="360" value="0" min="0" step="1" @input="handleDragRange($event as InputEvent)">
       <div btn @click="handleEndCrop">
         确认裁剪
-      </div>
-    </div>
+      </div> -->
+    <!-- </div> -->
   </div>
 </template>
 
