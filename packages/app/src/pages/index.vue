@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends any, O extends any">
 import { sum } from "@v50/edit-utils";
+import { title } from "process";
 import type { ComponentPublicInstance } from 'vue';
 type refItem = Element | ComponentPublicInstance | null
 
@@ -26,6 +27,7 @@ interface BarItem {
   handle?: () => void
 }
 
+
 const barOption = ref<BarItem[]>([
   {
     icon: 'i-carbon:cursor-2',
@@ -43,7 +45,7 @@ const barOption = ref<BarItem[]>([
   },
   {
     icon: 'i-carbon-awake',
-    title: '亮度',
+    title: '调整',
   },
   {
     icon: 'i-carbon-brush-freehand',
@@ -61,6 +63,145 @@ const barOption = ref<BarItem[]>([
     title: '文字',
   },
 ])
+
+
+const rotate = ref(0)
+interface CropBarItem extends BarItem { }
+const cropBarOption = ref<CropBarItem[]>([
+  {
+    icon: 'i-carbon:rotate-counterclockwise',
+    title: '向左旋转90度',
+    handle: () => {
+    }
+  },
+  {
+    icon: 'i-carbon:rotate-clockwise',
+    title: '向右旋转90度',
+    handle: () => {
+    }
+  },
+  {
+    icon: 'i-carbon:reflect-horizontal',
+    title: '水平翻转',
+    handle: () => {
+    }
+  },
+  {
+    icon: 'i-carbon:reflect-vertical',
+    title: '垂直翻转',
+    handle: () => {
+    }
+  },
+
+])
+
+interface ColorOptionItem {
+  min: number
+  max: number
+  value: number
+  handle?: (e: Event, item: ColorOptionItem) => void
+  title: string
+}
+
+const colorOption = ref<ColorOptionItem[]>([
+  {
+    min: -100,
+    max: 100,
+    value: 0,
+    title: '亮度',
+    handle: (e, item) => {
+      console.log('亮度', e.target, item);
+    }
+  },
+  {
+    min: -100,
+    max: 100,
+    value: 0,
+    title: '饱和度',
+    handle: () => {
+      console.log('饱和度');
+    }
+  },
+  {
+    min: -100,
+    max: 100,
+    value: 0,
+    title: '对比度',
+    handle: () => {
+      console.log('对比度');
+    }
+  },
+  {
+    min: -100,
+    max: 100,
+    value: 0,
+    title: '曝光度',
+    handle: () => {
+      console.log('曝光度');
+    }
+  }
+])
+
+
+const paintDrawType = ref([
+  {
+    icon: 'i-carbon:paint-brush-alt',
+    title: '铅笔',
+    value: 0,
+    handle: () => {
+    }
+  },
+  {
+    icon: 'i-carbon:pen-fountain',
+    title: '钢笔',
+    value: 1,
+    handle: () => {
+    }
+  },
+])
+const paintDrawTypeValue = ref(0)
+
+const paintColor = ref([
+  'red',
+  'aqua',
+  'yellow',
+  'green',
+  'purple',
+  'pink',
+  'orange',
+  'brown',
+  'gray',
+  'black',
+  'white',
+  'blue',
+  'teal',
+  'olive',
+  'maroon',
+  'fuchsia'
+])
+
+const paintColorValue = ref('red')
+
+const handleClickPaintColor = (item: string) => {
+  paintColorValue.value = item
+}
+
+const filterTypeList = ref([
+  {
+    title: '黑白',
+  },
+  {
+    title: '电影',
+  },
+  {
+    title: '动漫',
+  },
+  {
+    title: '人物',
+  }
+])
+
+const filterTypeValue = ref('')
 
 onMounted(() => {
   initActiveTranslateLeft(0)
@@ -86,7 +227,6 @@ const initActiveTranslateLeft = (index: number) => {
 
 
   const b_offsetHeight = (barItemRefs.value[index] as HTMLElement).offsetHeight + marginTop + marginBottom
-  console.log(marginTop, marginBottom, b_offsetHeight);
   const a_offsetHeight = (activeLine.value as HTMLElement).offsetHeight
   // 计算下划线位置
   activeTranslateLeft.value = b_offsetHeight * index + (b_offsetHeight - a_offsetHeight) / 2;
@@ -1001,18 +1141,71 @@ const handleDragRange = (event: InputEvent) => {
               class="font-size-22px group-hover:color-[#A9A9A9] transition duration-200 ease-in-out">
             </div>
           </div>
-          <div class="active-line pos-absolute w-6px h-30px right-0 top-0 bg-sky-500 transition-top" ref="activeLine"
+          <div class="pos-absolute w-6px h-30px right-0 top-0 bg-sky-500 transition-top" ref="activeLine"
             :style="{ top: activeTranslateLeft + 'px' }"></div>
         </div>
         <!-- tool -->
-        <div
-          class="h-100% w-280px bg-#292c31 border-l-1  border-black border-solid pos-absolute top-0 z-1 transition-transform duration-350"
+        <!-- transition-transform duration-350 -->
+        <div class="p12px h-100% w-280px bg-#292c31 border-l-1  border-black border-solid pos-absolute top-0 z-1"
           :class="[currentBarIndex !== 0 ? 'left-60px' : '-translate-x-100%']">
-          <div></div>
+          <div class="font-size-16p mb-12px">{{ barOption[currentBarIndex].title }}</div>
+          <!-- crop -->
+          <div v-if="currentBarIndex === 1"
+            class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px">
+            <div class="text-left mb12px font-size-14px">旋转与翻转</div>
+            <div class="flex">
+              <input class="w-100%" type="range" min="-180" max="180" v-model="rotate" step="1">
+              <div class="ml10px w-40px">{{ rotate }}°</div>
+            </div>
+            <div class="flex justify-between group mt12px mb12px">
+              <div :class="[item.icon]"
+                class="cursor-pointer font-size-18px hover:color-[#A9A9A9] transition duration-200 ease-in-out"
+                v-for="(item, idx) in cropBarOption" :key="idx" :title="item.title"></div>
+            </div>
+          </div>
+          <div v-if="currentBarIndex === 2"
+            class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px">
+            <div class="flex font-size-14px mb-20px" v-for="(item, idx) in colorOption" :key="idx">
+              <div class="mr10px">{{ item.title }}</div>
+              <input @input="(e) => item.handle && item.handle(e, item)" class="w-100% flex-1" type="range"
+                :min="item.min" :max="item.max" v-model="item.value" step="1">
+              <div class="ml10px w-40px">{{ item.value }}</div>
+            </div>
+
+          </div>
+          <div v-if="currentBarIndex === 3">
+            <div class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px flex flex-gap-8px">
+              <div class="flex-auto cup rounded-8px h-36px flex items-center justify-center bg-[#383A3E]"
+                v-for="(item, idx) in paintDrawType" :key="idx"
+                :class="[item.value === paintDrawTypeValue ? 'bg-primary' : '']"
+                @click="paintDrawTypeValue = item.value">
+                <div :class="[item.icon]"></div>
+              </div>
+            </div>
+            <div
+              class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px flex flex-gap-9px flex-wrap">
+              <div v-for="(item, idx) in paintColor" :key="idx" class="w20px h20px cursor-pointer rounded-2px"
+                :style="{ backgroundColor: item }"
+                :class="[item === paintColorValue ? 'border-1 border-solid border-primary shadow-md shadow-blue-500/40' : '']"
+                @click="handleClickPaintColor(item)">
+              </div>
+            </div>
+          </div>
+          <div v-if="currentBarIndex === 4"
+            class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px flex flex-gap-8px flex-wrap">
+            <div v-for="(item, idx) in filterTypeList" :key="idx" @click="filterTypeValue = item.title"
+              :class="[item.title === filterTypeValue ? 'border-1 border-solid border-primary shadow-md shadow-blue-500/40' : '']"
+              class="flex-auto bg-[#383A3E] rounded-2px font-size-12px color-[#868686] cup h-200px w-100px flex items-center justify-center">
+              {{
+                item.title
+              }}
+            </div>
+          </div>
         </div>
       </div>
-      <div class="flex-auto bg-[#202020] border pos-absolute top-0 transition-left duration-350"
-        :class="[currentBarIndex === 0 ? 'left-60px' : 'left-340px']">
+      <!-- transition-left duration-350 -->
+      <div class="h-100% flex-auto bg-[#202020] border pos-absolute top-0"
+        :class="[currentBarIndex === 0 ? 'left-60px w-[calc(100%-60px)]' : 'left-340px w-[calc(100%-340px)]']">
         <canvas id="canvas"></canvas>
       </div>
     </div>
