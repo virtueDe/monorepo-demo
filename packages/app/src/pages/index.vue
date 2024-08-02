@@ -1,6 +1,5 @@
 <script setup lang="ts" generic="T extends any, O extends any">
-import { sum } from "@v50/edit-utils";
-import { title } from "process";
+// import { sum } from "@v50/edit-utils";
 import type { ComponentPublicInstance } from 'vue';
 type refItem = Element | ComponentPublicInstance | null
 
@@ -202,6 +201,30 @@ const filterTypeList = ref([
 ])
 
 const filterTypeValue = ref('')
+
+
+const fontStyleList = ref([
+  {
+    title: '加粗',
+    icon: 'i-carbon:text-bold',
+    use: false
+  },
+  {
+    title: '斜体',
+    icon: 'i-carbon:text-italic',
+    use: false
+  },
+  {
+    title: '下划线',
+    icon: 'i-carbon:text-underline',
+    use: false
+  },
+  {
+    title: '删除线',
+    icon: 'i-carbon:text-strikethrough',
+    use: false
+  }
+])
 
 onMounted(() => {
   initActiveTranslateLeft(0)
@@ -1055,14 +1078,13 @@ const canvasInstance = shallowRef<CanvasImageManipulator | null>(null)
 // })
 
 onMounted(() => {
-  // canvasInstance.value = new CanvasImageManipulator('canvas')
+  canvasInstance.value = new CanvasImageManipulator('canvas')
+  // canvasInstance.value?.loadImage('./hjNvQge.jpeg');
+  canvasInstance.value?.loadImage('https://picsum.photos/id/237/300/300');
 
-  // canvasInstance.value?.loadImage('https://picsum.photos/id/237/300/300');
-  // canvasInstance.value.
-  // setInterval(() => {
-  //   console.log(canvasInstanceObj.value.instance, canvasInstanceObj.value.instance?.scale);
+  // setTimeout(() => {
+  //   canvasInstance.value?.loadImage('./hjNvQge.jpeg');
   // }, 1000)
-  // const canvasInstance = reactive(new CanvasImageManipulator('canvas'))
 })
 const imageFileName = ref('请上传图片')
 
@@ -1178,7 +1200,7 @@ const handleDragRange = (event: InputEvent) => {
               <div class="flex-auto cup rounded-8px h-36px flex items-center justify-center bg-[#383A3E]"
                 v-for="(item, idx) in paintDrawType" :key="idx"
                 :class="[item.value === paintDrawTypeValue ? 'bg-primary' : '']"
-                @click="paintDrawTypeValue = item.value">
+                @click="paintDrawTypeValue = item.value" :title="item.title">
                 <div :class="[item.icon]"></div>
               </div>
             </div>
@@ -1201,14 +1223,41 @@ const handleDragRange = (event: InputEvent) => {
               }}
             </div>
           </div>
+          <div v-if="currentBarIndex === 5"
+            class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px">
+            <div class="flex font-size-14px mb-20px justify-center">
+              <div class="mr10px">字体大小</div>
+              <input type="number" value="14" list="defaultNumbers" min="2" max="200" step="1" class="w-100% flex-1">
+              <datalist id="defaultNumbers">
+                <option value="18"></option>
+                <option value="24"></option>
+                <option value="36"></option>
+                <option value="72"></option>
+              </datalist>
+            </div>
+            <div class="flex font-size-14px mb-20px">
+              <div class="mr10px">文本颜色</div>
+              <input class="w-100% flex-1" type="color" value="#fff">
+            </div>
+            <div class="flex justify-between font-size-18px gap-10px">
+              <div class="flex-1 cup bg-[#383A3E] flex items-center justify-center p6px rounded-5px"
+                v-for="(item, idx) in fontStyleList" :key="idx" :class="[item.use ? 'bg-primary' : '']"
+                @click="item.use = !item.use">
+                <div :class="[item.icon]"></div>
+
+              </div>
+
+            </div>
+          </div>
         </div>
       </div>
       <!-- transition-left duration-350 -->
-      <div class="h-100% flex-auto bg-[#202020] border pos-absolute top-0"
+      <div class="h-100% flex-auto bg-[#202020] pos-absolute top-0 box-border"
         :class="[currentBarIndex === 0 ? 'left-60px w-[calc(100%-60px)]' : 'left-340px w-[calc(100%-340px)]']">
         <canvas id="canvas"></canvas>
       </div>
     </div>
+    <img class="w100px h100px" src="./hjNvQge.jpeg" alt="" srcset="">
     <!-- <div h-40px w-full class="bg-[#23292c]" flex justify-between items-center> -->
 
     <!-- <div class=" color-[#fff]">{{ canvasInstance?.scale }}</div>
