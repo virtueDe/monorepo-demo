@@ -31,16 +31,10 @@ const barOption = ref<BarItem[]>([
   {
     icon: 'i-carbon:cursor-2',
     title: '查看',
-    handle: () => {
-      canvasInstance.value?.startCrop()
-    }
   },
   {
     icon: 'i-carbon-cut-out',
     title: '裁剪',
-    handle: () => {
-      canvasInstance.value?.startCrop()
-    }
   },
   {
     icon: 'i-carbon-awake',
@@ -49,9 +43,6 @@ const barOption = ref<BarItem[]>([
   {
     icon: 'i-carbon-brush-freehand',
     title: '画笔',
-    handle: () => {
-      canvasInstance.value?.drawLine()
-    }
   },
   {
     icon: 'i-carbon-edge-enhancement',
@@ -70,26 +61,18 @@ const cropBarOption = ref<CropBarItem[]>([
   {
     icon: 'i-carbon:rotate-counterclockwise',
     title: '向左旋转90度',
-    handle: () => {
-    }
   },
   {
     icon: 'i-carbon:rotate-clockwise',
     title: '向右旋转90度',
-    handle: () => {
-    }
   },
   {
     icon: 'i-carbon:reflect-horizontal',
     title: '水平翻转',
-    handle: () => {
-    }
   },
   {
     icon: 'i-carbon:reflect-vertical',
     title: '垂直翻转',
-    handle: () => {
-    }
   },
 
 ])
@@ -236,7 +219,20 @@ const handleChangeIndex = (item: BarItem, index: number) => {
   currentBarIndex.value = index;
   initActiveTranslateLeft(currentBarIndex.value)
 
-  item.handle?.()
+
+  setTimeout(() => {
+    const width = document.getElementById('canvas')?.parentElement?.offsetWidth as number
+    const height = document.getElementById('canvas')?.parentElement?.offsetHeight as number
+    // console.log(width, height, document.getElementById('canvas')?.parentElement?.clientWidth);
+
+    canvasInstance.value?.handleViewportResize(width, height)
+
+
+    if (index === 1) {
+      canvasInstance.value?.switchCanvasModel(CanvasModel.Crop)
+    }
+  })
+
 }
 
 const setBarItemRefs = (el: refItem) => {
@@ -255,19 +251,49 @@ const initActiveTranslateLeft = (index: number) => {
   activeTranslateLeft.value = b_offsetHeight * index + (b_offsetHeight - a_offsetHeight) / 2;
 }
 
-/**
- * @module: Image
- * feature:
- * 1. 基础画布功能：缩放、移动
- * 2. 裁剪：
- *     2.1：裁剪框裁剪图片
- *     2.2：水平垂直图片翻转
- *     2.3：图片旋转
- * 3. 亮度： 自然饱和度、饱和度、温度、色调、色相、亮度、曝光度、
- * 4. 滤镜：黑白滤镜、电影滤镜
- * 5. 画笔工具
- * 6. 文字工具
- */
+
+class Image {
+  imageElement: HTMLImageElement = document.createElement('img');
+  margin: number = 20;
+  width: number = 0
+  height: number = 0
+  x: number = 0
+  y: number = 0
+  angle: number = 0;
+  constructor() { }
+}
+
+enum MouseInCropModule {
+  InCrop = 'inCrop',
+  InOut = 'inOut',
+
+  InDot = 'inDot',
+
+  InTop = 'inTop',
+  InBottom = 'inBottom',
+  InLeft = 'inLeft',
+  InRight = 'inRight',
+}
+
+
+class CropRect {
+  width: number = 0
+  height: number = 0
+  x: number = 0
+  y: number = 0
+  lineWidth: number = 6
+  referenceLineWidth: number = 1;
+  DotSize: number = 20;
+  InCropModule: MouseInCropModule = MouseInCropModule.InOut
+  constructor() { }
+}
+
+enum CanvasModel {
+  Preview = 'Preview',
+  Crop = 'crop',
+  Draw = 'draw',
+  Text = 'Text',
+}
 
 class CanvasImageManipulator {
   /**
@@ -275,192 +301,191 @@ class CanvasImageManipulator {
    */
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private image: HTMLImageElement = new Image();
-
-  /**
-   * @description: Scale
-   * minScale 缩放最小比例
-   * maxScale 缩放最大比例
-   * scale 缩放比例
-   * baseScale  // 基础缩放比例
-   */
-  private minScale: number = 0.1
-  private maxScale: number = 10
-  private baseScale: number = 1;
-  public scale: number = 1;
-
-  /**
-   * @description: 距离边界的空隙
-   */
-  private margin: number = 100;
-
   private dpi: number = 1;
+  canvasModel: CanvasModel = CanvasModel.Preview
 
-  /**
-    * @description: 当前的坐标点
-    */
-  private originX: number = 0;
-  private originY: number = 0;
+  viewportWidth: number = 0;
+  viewportHeight: number = 0;
 
-  private angle: number = 0;
-
-  private sourceX: number = 0;
-  private sourceY: number = 0;
-  private sourceWidth: number = 0;
-  private sourceHeight: number = 0;
-
-  private canvasOriginalWidth: number = 0;
-  private canvasOriginalHeight: number = 0;
+  private canvasScale = {
+    min: 0.1,
+    max: 10,
+    value: 1,
+    base: 1,
+  }
 
 
-  private isEndCrop: boolean = false;
-
-  /**
-    * @description: 上次的坐标点
-    */
-  private lastX: number = 0;
-  private lastY: number = 0;
-
-
-  private flip: 'normal' | 'horizontal' | 'vertical' = 'normal'
-
-  /**
-    * @description: 缩放后的宽度高度
-    */
-  private scaleWidth: number = 0;
-  private scaleHeight: number = 0;
+  mouse = {
+    lastX: 0,
+    lastY: 0,
+    cursor: 'default',
+    dragging: false,
+  }
 
 
-  private lineX = 0
-  private lineY = 0
-  private lineWidth = 5
-  private pathData = [{ "x": 377, "y": 107 }, { "x": 377, "y": 111 }, { "x": 377, "y": 111 }, { "x": 377, "y": 115 }, { "x": 377, "y": 115 }, { "x": 377, "y": 119 }, { "x": 377, "y": 119 }, { "x": 375, "y": 126 }, { "x": 375, "y": 126 }, { "x": 374, "y": 134 }, { "x": 374, "y": 134 }, { "x": 374, "y": 142 }, { "x": 374, "y": 142 }, { "x": 373, "y": 148 }, { "x": 373, "y": 148 }, { "x": 372, "y": 158 }, { "x": 372, "y": 158 }, { "x": 370, "y": 170 }, { "x": 370, "y": 170 }, { "x": 367, "y": 183 }, { "x": 367, "y": 183 }, { "x": 366, "y": 195 }, { "x": 366, "y": 195 }, { "x": 364, "y": 207 }, { "x": 364, "y": 207 }, { "x": 362, "y": 221 }, { "x": 362, "y": 221 }, { "x": 358, "y": 239 }, { "x": 358, "y": 239 }, { "x": 356, "y": 254 }, { "x": 356, "y": 254 }, { "x": 355, "y": 266 }, { "x": 355, "y": 266 }, { "x": 353, "y": 278 }, { "x": 353, "y": 278 }, { "x": 352, "y": 285 }, { "x": 352, "y": 285 }, { "x": 350, "y": 291 }, { "x": 350, "y": 291 }, { "x": 350, "y": 297 }, { "x": 350, "y": 297 }, { "x": 350, "y": 302 }, { "x": 350, "y": 302 }, { "x": 350, "y": 306 }, { "x": 350, "y": 306 }, { "x": 350, "y": 310 }, { "x": 350, "y": 310 }, { "x": 350, "y": 312 }, { "x": 350, "y": 312 }, { "x": 349, "y": 315 }, { "x": 349, "y": 315 }, { "x": 348, "y": 316 }, { "x": 348, "y": 316 }, { "x": 348, "y": 318 }, { "x": 348, "y": 318 }, { "x": 348, "y": 319 }, { "x": 348, "y": 319 }, { "x": 348, "y": 319 }, { "x": 348, "y": 319 }, { "x": 348, "y": 321 }, { "x": 348, "y": 321 }, { "x": 348, "y": 322 }, { "x": 348, "y": 322 }, { "x": 348, "y": 323 }, { "x": 348, "y": 323 }, { "x": 348, "y": 325 }, { "x": 348, "y": 325 }, { "x": 348, "y": 327 }, { "x": 348, "y": 327 }, { "x": 348, "y": 327 }, { "x": 348, "y": 327 }, { "x": 348, "y": 328 }, { "x": 348, "y": 328 }, { "x": 348, "y": 329 }, { "x": 348, "y": 329 }, { "x": 348, "y": 331 }, { "x": 348, "y": 331 }, { "x": 348, "y": 334 }, { "x": 348, "y": 334 }, { "x": 348, "y": 337 }, { "x": 348, "y": 337 }, { "x": 348, "y": 339 }, { "x": 348, "y": 339 }, { "x": 348, "y": 344 }, { "x": 348, "y": 344 }, { "x": 347, "y": 345 }, { "x": 347, "y": 345 }, { "x": 347, "y": 347 }, { "x": 347, "y": 347 }, { "x": 347, "y": 347 }, { "x": 347, "y": 347 }, { "x": 347, "y": 348 }, { "x": 347, "y": 348 }, { "x": 346, "y": 351 }, { "x": 346, "y": 351 }, { "x": 346, "y": 351 }, { "x": 346, "y": 351 }, { "x": 346, "y": 353 }, { "x": 346, "y": 353 }, { "x": 345, "y": 355 }, { "x": 345, "y": 355 }, { "x": 344, "y": 356 }, { "x": 344, "y": 356 }, { "x": 344, "y": 357 }, { "x": 344, "y": 357 }, { "x": 344, "y": 358 }, { "x": 344, "y": 358 }, { "x": 344, "y": 359 }, { "x": 344, "y": 359 }, { "x": 344, "y": 359 }, { "x": 344, "y": 359 }, { "x": 343, "y": 361 }, { "x": 343, "y": 361 }, { "x": 343, "y": 362 }, { "x": 343, "y": 362 }, { "x": 343, "y": 363 }, { "x": 343, "y": 363 }, { "x": 343, "y": 363 }, { "x": 343, "y": 363 }, { "x": 343, "y": 365 }, { "x": 343, "y": 365 }, { "x": 343, "y": 366 }, { "x": 343, "y": 366 }, { "x": 342, "y": 367 }, { "x": 342, "y": 367 }, { "x": 342, "y": 367 }, { "x": 342, "y": 367 }, { "x": 342, "y": 368 }, { "x": 342, "y": 368 }, { "x": 342, "y": 369 }, { "x": 342, "y": 369 }, { "x": 342, "y": 370 }, { "x": 342, "y": 370 }, { "x": 342, "y": 371 }, { "x": 342, "y": 371 }, { "x": 342, "y": 372 }, { "x": 342, "y": 372 }, { "x": 342, "y": 373 }, { "x": 342, "y": 373 }, { "x": 342, "y": 375 }, { "x": 342, "y": 375 }, { "x": 341, "y": 377 }, { "x": 341, "y": 377 }, { "x": 341, "y": 378 }, { "x": 341, "y": 378 }, { "x": 341, "y": 379 }, { "x": 341, "y": 379 }, { "x": 340, "y": 379 }, { "x": 340, "y": 379 }, { "x": 340, "y": 381 }, { "x": 340, "y": 381 }, { "x": 340, "y": 382 }, { "x": 340, "y": 382 }, { "x": 338, "y": 383 }, { "x": 338, "y": 383 }, { "x": 338, "y": 384 }, { "x": 338, "y": 384 }, { "x": 338, "y": 386 }, { "x": 338, "y": 386 }, { "x": 338, "y": 387 }, { "x": 338, "y": 387 }, { "x": 338, "y": 389 }, { "x": 338, "y": 389 }, { "x": 338, "y": 390 }, { "x": 338, "y": 390 }, { "x": 338, "y": 391 }, { "x": 338, "y": 391 }, { "x": 338, "y": 392 }, { "x": 338, "y": 392 }, { "x": 338, "y": 394 }, { "x": 338, "y": 394 }, { "x": 337, "y": 395 }, { "x": 337, "y": 395 }, { "x": 337, "y": 395 }, { "x": 337, "y": 395 }, { "x": 337, "y": 396 }, { "x": 337, "y": 396 }, { "x": 337, "y": 398 }, { "x": 337, "y": 398 }, { "x": 337, "y": 399 }, { "x": 337, "y": 399 }, { "x": 337, "y": 399 }, { "x": 337, "y": 399 }, { "x": 335, "y": 401 }, { "x": 335, "y": 401 }, { "x": 335, "y": 402 }, { "x": 335, "y": 402 }, { "x": 335, "y": 403 }, { "x": 335, "y": 403 }, { "x": 335, "y": 404 }, { "x": 335, "y": 404 }, { "x": 334, "y": 404 }, { "x": 334, "y": 404 }, { "x": 334, "y": 407 }, { "x": 334, "y": 407 }, { "x": 334, "y": 410 }, { "x": 334, "y": 410 }, { "x": 334, "y": 411 }, { "x": 334, "y": 411 }, { "x": 334, "y": 413 }, { "x": 334, "y": 413 }, { "x": 334, "y": 415 }, { "x": 334, "y": 415 }, { "x": 333, "y": 417 }, { "x": 333, "y": 417 }, { "x": 332, "y": 418 }, { "x": 332, "y": 418 }, { "x": 331, "y": 420 }, { "x": 331, "y": 420 }, { "x": 331, "y": 422 }, { "x": 331, "y": 422 }, { "x": 330, "y": 424 }, { "x": 330, "y": 424 }, { "x": 330, "y": 426 }, { "x": 330, "y": 426 }, { "x": 329, "y": 429 }, { "x": 329, "y": 429 }, { "x": 328, "y": 431 }, { "x": 328, "y": 431 }, { "x": 328, "y": 432 }, { "x": 328, "y": 432 }, { "x": 328, "y": 434 }, { "x": 328, "y": 434 }, { "x": 327, "y": 435 }, { "x": 327, "y": 435 }, { "x": 327, "y": 436 }, { "x": 327, "y": 436 }, { "x": 326, "y": 438 }, { "x": 326, "y": 438 }, { "x": 326, "y": 439 }, { "x": 326, "y": 439 }, { "x": 325, "y": 440 }, { "x": 325, "y": 440 }, { "x": 325, "y": 441 }, { "x": 325, "y": 441 }, { "x": 325, "y": 442 }, { "x": 325, "y": 442 }, { "x": 324, "y": 443 }, { "x": 324, "y": 443 }, { "x": 324, "y": 443 }, { "x": 324, "y": 443 }, { "x": 324, "y": 444 }, { "x": 324, "y": 444 }, { "x": 324, "y": 445 }, { "x": 324, "y": 445 }, { "x": 324, "y": 446 }]
+
+  image: Image;
+  cropRect: CropRect
+
+  ro: ResizeObserver
+
+  // /**
+  //   * @description: 当前的坐标点
+  //   */
+  // private originX: number = 0;
+  // private originY: number = 0;
+
+
+  // private sourceX: number = 0;
+  // private sourceY: number = 0;
+  // private sourceWidth: number = 0;
+  // private sourceHeight: number = 0;
+
+  // private canvasOriginalWidth: number = 0;
+  // private canvasOriginalHeight: number = 0;
+
+
+  // private isEndCrop: boolean = false;
+
+
+  // private flip: 'normal' | 'horizontal' | 'vertical' = 'normal'
+
+  // /**
+  //   * @description: 缩放后的宽度高度
+  //   */
+  // private scaleWidth: number = 0;
+  // private scaleHeight: number = 0;
+
+
+  // private lineX = 0
+  // private lineY = 0
+  // private lineWidth = 5
+  // private pathData = [{ "x": 377, "y": 107 }, { "x": 377, "y": 111 }, { "x": 377, "y": 111 }, { "x": 377, "y": 115 }, { "x": 377, "y": 115 }, { "x": 377, "y": 119 }, { "x": 377, "y": 119 }, { "x": 375, "y": 126 }, { "x": 375, "y": 126 }, { "x": 374, "y": 134 }, { "x": 374, "y": 134 }, { "x": 374, "y": 142 }, { "x": 374, "y": 142 }, { "x": 373, "y": 148 }, { "x": 373, "y": 148 }, { "x": 372, "y": 158 }, { "x": 372, "y": 158 }, { "x": 370, "y": 170 }, { "x": 370, "y": 170 }, { "x": 367, "y": 183 }, { "x": 367, "y": 183 }, { "x": 366, "y": 195 }, { "x": 366, "y": 195 }, { "x": 364, "y": 207 }, { "x": 364, "y": 207 }, { "x": 362, "y": 221 }, { "x": 362, "y": 221 }, { "x": 358, "y": 239 }, { "x": 358, "y": 239 }, { "x": 356, "y": 254 }, { "x": 356, "y": 254 }, { "x": 355, "y": 266 }, { "x": 355, "y": 266 }, { "x": 353, "y": 278 }, { "x": 353, "y": 278 }, { "x": 352, "y": 285 }, { "x": 352, "y": 285 }, { "x": 350, "y": 291 }, { "x": 350, "y": 291 }, { "x": 350, "y": 297 }, { "x": 350, "y": 297 }, { "x": 350, "y": 302 }, { "x": 350, "y": 302 }, { "x": 350, "y": 306 }, { "x": 350, "y": 306 }, { "x": 350, "y": 310 }, { "x": 350, "y": 310 }, { "x": 350, "y": 312 }, { "x": 350, "y": 312 }, { "x": 349, "y": 315 }, { "x": 349, "y": 315 }, { "x": 348, "y": 316 }, { "x": 348, "y": 316 }, { "x": 348, "y": 318 }, { "x": 348, "y": 318 }, { "x": 348, "y": 319 }, { "x": 348, "y": 319 }, { "x": 348, "y": 319 }, { "x": 348, "y": 319 }, { "x": 348, "y": 321 }, { "x": 348, "y": 321 }, { "x": 348, "y": 322 }, { "x": 348, "y": 322 }, { "x": 348, "y": 323 }, { "x": 348, "y": 323 }, { "x": 348, "y": 325 }, { "x": 348, "y": 325 }, { "x": 348, "y": 327 }, { "x": 348, "y": 327 }, { "x": 348, "y": 327 }, { "x": 348, "y": 327 }, { "x": 348, "y": 328 }, { "x": 348, "y": 328 }, { "x": 348, "y": 329 }, { "x": 348, "y": 329 }, { "x": 348, "y": 331 }, { "x": 348, "y": 331 }, { "x": 348, "y": 334 }, { "x": 348, "y": 334 }, { "x": 348, "y": 337 }, { "x": 348, "y": 337 }, { "x": 348, "y": 339 }, { "x": 348, "y": 339 }, { "x": 348, "y": 344 }, { "x": 348, "y": 344 }, { "x": 347, "y": 345 }, { "x": 347, "y": 345 }, { "x": 347, "y": 347 }, { "x": 347, "y": 347 }, { "x": 347, "y": 347 }, { "x": 347, "y": 347 }, { "x": 347, "y": 348 }, { "x": 347, "y": 348 }, { "x": 346, "y": 351 }, { "x": 346, "y": 351 }, { "x": 346, "y": 351 }, { "x": 346, "y": 351 }, { "x": 346, "y": 353 }, { "x": 346, "y": 353 }, { "x": 345, "y": 355 }, { "x": 345, "y": 355 }, { "x": 344, "y": 356 }, { "x": 344, "y": 356 }, { "x": 344, "y": 357 }, { "x": 344, "y": 357 }, { "x": 344, "y": 358 }, { "x": 344, "y": 358 }, { "x": 344, "y": 359 }, { "x": 344, "y": 359 }, { "x": 344, "y": 359 }, { "x": 344, "y": 359 }, { "x": 343, "y": 361 }, { "x": 343, "y": 361 }, { "x": 343, "y": 362 }, { "x": 343, "y": 362 }, { "x": 343, "y": 363 }, { "x": 343, "y": 363 }, { "x": 343, "y": 363 }, { "x": 343, "y": 363 }, { "x": 343, "y": 365 }, { "x": 343, "y": 365 }, { "x": 343, "y": 366 }, { "x": 343, "y": 366 }, { "x": 342, "y": 367 }, { "x": 342, "y": 367 }, { "x": 342, "y": 367 }, { "x": 342, "y": 367 }, { "x": 342, "y": 368 }, { "x": 342, "y": 368 }, { "x": 342, "y": 369 }, { "x": 342, "y": 369 }, { "x": 342, "y": 370 }, { "x": 342, "y": 370 }, { "x": 342, "y": 371 }, { "x": 342, "y": 371 }, { "x": 342, "y": 372 }, { "x": 342, "y": 372 }, { "x": 342, "y": 373 }, { "x": 342, "y": 373 }, { "x": 342, "y": 375 }, { "x": 342, "y": 375 }, { "x": 341, "y": 377 }, { "x": 341, "y": 377 }, { "x": 341, "y": 378 }, { "x": 341, "y": 378 }, { "x": 341, "y": 379 }, { "x": 341, "y": 379 }, { "x": 340, "y": 379 }, { "x": 340, "y": 379 }, { "x": 340, "y": 381 }, { "x": 340, "y": 381 }, { "x": 340, "y": 382 }, { "x": 340, "y": 382 }, { "x": 338, "y": 383 }, { "x": 338, "y": 383 }, { "x": 338, "y": 384 }, { "x": 338, "y": 384 }, { "x": 338, "y": 386 }, { "x": 338, "y": 386 }, { "x": 338, "y": 387 }, { "x": 338, "y": 387 }, { "x": 338, "y": 389 }, { "x": 338, "y": 389 }, { "x": 338, "y": 390 }, { "x": 338, "y": 390 }, { "x": 338, "y": 391 }, { "x": 338, "y": 391 }, { "x": 338, "y": 392 }, { "x": 338, "y": 392 }, { "x": 338, "y": 394 }, { "x": 338, "y": 394 }, { "x": 337, "y": 395 }, { "x": 337, "y": 395 }, { "x": 337, "y": 395 }, { "x": 337, "y": 395 }, { "x": 337, "y": 396 }, { "x": 337, "y": 396 }, { "x": 337, "y": 398 }, { "x": 337, "y": 398 }, { "x": 337, "y": 399 }, { "x": 337, "y": 399 }, { "x": 337, "y": 399 }, { "x": 337, "y": 399 }, { "x": 335, "y": 401 }, { "x": 335, "y": 401 }, { "x": 335, "y": 402 }, { "x": 335, "y": 402 }, { "x": 335, "y": 403 }, { "x": 335, "y": 403 }, { "x": 335, "y": 404 }, { "x": 335, "y": 404 }, { "x": 334, "y": 404 }, { "x": 334, "y": 404 }, { "x": 334, "y": 407 }, { "x": 334, "y": 407 }, { "x": 334, "y": 410 }, { "x": 334, "y": 410 }, { "x": 334, "y": 411 }, { "x": 334, "y": 411 }, { "x": 334, "y": 413 }, { "x": 334, "y": 413 }, { "x": 334, "y": 415 }, { "x": 334, "y": 415 }, { "x": 333, "y": 417 }, { "x": 333, "y": 417 }, { "x": 332, "y": 418 }, { "x": 332, "y": 418 }, { "x": 331, "y": 420 }, { "x": 331, "y": 420 }, { "x": 331, "y": 422 }, { "x": 331, "y": 422 }, { "x": 330, "y": 424 }, { "x": 330, "y": 424 }, { "x": 330, "y": 426 }, { "x": 330, "y": 426 }, { "x": 329, "y": 429 }, { "x": 329, "y": 429 }, { "x": 328, "y": 431 }, { "x": 328, "y": 431 }, { "x": 328, "y": 432 }, { "x": 328, "y": 432 }, { "x": 328, "y": 434 }, { "x": 328, "y": 434 }, { "x": 327, "y": 435 }, { "x": 327, "y": 435 }, { "x": 327, "y": 436 }, { "x": 327, "y": 436 }, { "x": 326, "y": 438 }, { "x": 326, "y": 438 }, { "x": 326, "y": 439 }, { "x": 326, "y": 439 }, { "x": 325, "y": 440 }, { "x": 325, "y": 440 }, { "x": 325, "y": 441 }, { "x": 325, "y": 441 }, { "x": 325, "y": 442 }, { "x": 325, "y": 442 }, { "x": 324, "y": 443 }, { "x": 324, "y": 443 }, { "x": 324, "y": 443 }, { "x": 324, "y": 443 }, { "x": 324, "y": 444 }, { "x": 324, "y": 444 }, { "x": 324, "y": 445 }, { "x": 324, "y": 445 }, { "x": 324, "y": 446 }]
 
   // private pathData: { x: number, y: number }[] = []
 
 
-  private textAttribute = {
-    fontSize: 50,
-    data: 'hello Canvas',
-    fontFamily: 'sans-serif',
-    // font: '16px sans-serif',
-    fillStyle: 'blue',
-    textAlign: 'center',
-    X: 150,
-    y: 150
-  }
+  // private textAttribute = {
+  //   fontSize: 50,
+  //   data: 'hello Canvas',
+  //   fontFamily: 'sans-serif',
+  //   // font: '16px sans-serif',
+  //   fillStyle: 'blue',
+  //   textAlign: 'center',
+  //   X: 150,
+  //   y: 150
+  // }
 
-  /**
-    * @description: 裁剪框
-    */
-  private cutWidth: number = 0;
-  private cutHeight: number = 0;
-  private cutX: number = 0;
-  private cutY: number = 0;
-  private cutLineWidth: number = 2;
-  private cutReferenceLineWidth: number = 1;
-  private cutDotWidth: number = 40;
 
-  private dragging: boolean = false;
-
-  private cropping: boolean = false;
+  // private cropping: boolean = false;
   // private isResizing: boolean = false;
-  private resizeEdge: string | null = null;
+  // private resizeEdge: string | null = null;
 
   // 绘制线条
-  private isDrawLine = false
+  // private isDrawLine = false
 
-  /***
-   * @description: 鼠标在裁剪模块内
-   * 1. crop: 鼠标在裁剪框内
-   * 2. edge: 鼠标在裁剪框的边上
-   * 3. corner: 鼠标在裁剪框的角上
-   */
-  private mouseInCropModule: 'crop' | 'edge' | 'corner' | null = null
 
   constructor(canvasId: string) {
     this.dpi = window.devicePixelRatio || 1;
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    // this.canvas.width = this.canvas.parentElement!.clientWidth * this.dpi;
-    // this.canvas.height = this.canvas.parentElement!.clientHeight * this.dpi;
-    this.canvas.width = this.canvas.parentElement!.clientWidth;
-    this.canvas.height = this.canvas.parentElement!.clientHeight;
-    this.canvasOriginalWidth = this.canvas.parentElement!.clientWidth;
-    this.canvasOriginalHeight = this.canvas.parentElement!.clientHeight;
+
+    const parentWidth = this.canvas.parentElement!.offsetWidth;
+    const parentHeight = this.canvas.parentElement!.offsetHeight;
+
+    this.canvas.width = parentWidth * this.dpi;
+    this.canvas.height = parentHeight * this.dpi;
+
+    this.canvas.style.width = parentWidth + 'px';
+    this.canvas.style.height = parentHeight + 'px';
+
+    this.viewportWidth = parentWidth
+    this.viewportHeight = parentHeight
+
     this.ctx = this.canvas.getContext('2d')!;
-    this.ctx.save()
-    // this.ctx.scale(this.dpi, this.dpi)
-    this.ctx.restore()
+    this.ctx.scale(this.dpi, this.dpi)
+
+    this.image = new Image();
+    this.cropRect = new CropRect()
+
+    this.ro = new ResizeObserver(entries => {
+      entries.forEach(entry => {
+        this.handleViewportResize(entry.contentRect.width, entry.contentRect.height)
+      });
+    });
+
     this.initEventListeners();
+
+    // this.ro.observe(this.canvas.parentElement as HTMLElement);
   }
   public loadImage(src: string) {
     if (!src) return
-    this.image.src = src;
-    this.image.crossOrigin = 'anonymous'
-    this.image.onload = () => {
+    this.image.imageElement.src = src;
+    this.image.imageElement.crossOrigin = 'anonymous'
+
+    this.image.imageElement.onload = () => {
       this.onResetImage()
       this.draw()
     };
   }
   public reversal(flipType: 'normal' | 'horizontal' | 'vertical' = 'horizontal') {
-    this.flip = flipType
+    // this.flip = flipType
     // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     // this.ctx.save();
     // this.ctx.scale(-1, 1);
     // this.originX = -this.canvas.width + this.originX;
-    this.draw()
+    // this.draw()
     // this.ctx.restore()
   }
   public saveImage() {
 
-    var img = new Image()
-    img.crossOrigin = "anonymous";
-    img.src = this.image.src
+    // var img = new Image()
+    // img.crossOrigin = "anonymous";
+    // img.src = this.image.src
 
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const width = this.sourceWidth;
-      const height = this.sourceHeight;
-      canvas.width = width;
-      canvas.height = height;
+    // img.onload = () => {
+    //   const canvas = document.createElement('canvas');
+    //   const width = this.sourceWidth;
+    //   const height = this.sourceHeight;
+    //   canvas.width = width;
+    //   canvas.height = height;
 
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(this.image, this.sourceX, this.sourceY, width, height, 0, 0, width, height);
-      const imageName = 'cropped-image.png';
-      canvas.toBlob((blob) => {
-        if (blob) {
-          // const editedFile = new File([blob], imageName, { type: blob.type });
-          const objectUrl = URL.createObjectURL(blob);
-          const linkElement = document.createElement('a');
-          linkElement.download = `${imageName}`;
-          linkElement.href = objectUrl;
-          linkElement.click();
-          URL.revokeObjectURL(objectUrl);
-        }
-      }, 'image/png');
-    }
+    //   const ctx = canvas.getContext('2d');
+    //   ctx?.drawImage(this.image, this.sourceX, this.sourceY, width, height, 0, 0, width, height);
+    //   const imageName = 'cropped-image.png';
+    //   canvas.toBlob((blob) => {
+    //     if (blob) {
+    //       // const editedFile = new File([blob], imageName, { type: blob.type });
+    //       const objectUrl = URL.createObjectURL(blob);
+    //       const linkElement = document.createElement('a');
+    //       linkElement.download = `${imageName}`;
+    //       linkElement.href = objectUrl;
+    //       linkElement.click();
+    //       URL.revokeObjectURL(objectUrl);
+    //     }
+    //   }, 'image/png');
+    // }
   }
   public drawLine() {
-    this.dragging = false
+    // this.dragging = false
     // this.isDrawLine = true
   }
   public changeLuminance(value: number) {
-    const data = this.ctx.getImageData(this.originX * this.dpi, this.originY * this.dpi, this.scaleWidth * this.dpi, this.scaleHeight * this.dpi)
+    // const data = this.ctx.getImageData(this.originX * this.dpi, this.originY * this.dpi, this.scaleWidth * this.dpi, this.scaleHeight * this.dpi)
 
-    const luminance = (imgData: ImageData, value: number) => {
-      const data = imgData.data
-      for (let i = 0; i < data.length; i += 4) {
-        const hsv = this.rgb2hsv([data[i], data[i + 1], data[i + 2]])
-        hsv[2] *= (1 + value)
-        const rgb = this.hsv2rgb([...hsv])
-        data[i] = rgb[0];
-        data[i + 1] = rgb[1];
-        data[i + 2] = rgb[2];
-      }
-      return imgData
-    }
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.putImageData(luminance(data, -0.5), this.originX * this.dpi, this.originY * this.dpi, 0, 0, this.scaleWidth * this.dpi, this.scaleHeight * this.dpi)
+    // const luminance = (imgData: ImageData, value: number) => {
+    //   const data = imgData.data
+    //   for (let i = 0; i < data.length; i += 4) {
+    //     const hsv = this.rgb2hsv([data[i], data[i + 1], data[i + 2]])
+    //     hsv[2] *= (1 + value)
+    //     const rgb = this.hsv2rgb([...hsv])
+    //     data[i] = rgb[0];
+    //     data[i + 1] = rgb[1];
+    //     data[i + 2] = rgb[2];
+    //   }
+    //   return imgData
+    // }
+    // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // this.ctx.putImageData(luminance(data, -0.5), this.originX * this.dpi, this.originY * this.dpi, 0, 0, this.scaleWidth * this.dpi, this.scaleHeight * this.dpi)
   }
 
   private hsv2rgb(hsv: number[]) {
@@ -549,117 +574,137 @@ class CanvasImageManipulator {
   }
   public rotation(deg: number) {
     // console.log(deg);
-    this.angle = deg
+    // this.angle = deg
     // canvas 图片旋转
     // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     // this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
     // this.ctx.rotate(deg * Math.PI / 180);
     // this.ctx.drawImage(this.image, -this.image.width / 2, -this.image.height / 2);
-    this.draw()
+    // this.draw()
   }
   private onResetImage() {
-    const canvasAspect = this.canvasOriginalWidth / this.canvasOriginalHeight;
-    const imageAspect = this.image.width / this.image.height;
+    const canvasAspect = this.viewportWidth / this.viewportHeight;
+    const imageAspect = this.image.imageElement.width / this.image.imageElement.height;
 
     if (imageAspect > canvasAspect) {
-      this.baseScale = (this.canvasOriginalWidth - 2 * this.margin) / this.image.width;
+      this.canvasScale.value = (this.viewportWidth - 2 * this.image.margin) / this.image.imageElement.width;
     } else {
-      this.baseScale = (this.canvasOriginalHeight - 2 * this.margin) / this.image.height;
+      this.canvasScale.value = (this.viewportHeight - 2 * this.image.margin) / this.image.imageElement.height;
     }
 
-    this.scale = this.baseScale;
 
     // 计算初始位置，使得图片居中
-    this.originX = (this.canvasOriginalWidth - this.image.width * this.scale) / 2;
-    this.originY = (this.canvasOriginalHeight - this.image.height * this.scale) / 2;
+    this.image.x = (this.viewportWidth - this.image.imageElement.width * this.canvasScale.value) / 2;
+    this.image.y = (this.viewportHeight - this.image.imageElement.height * this.canvasScale.value) / 2;
 
     // 计算新的宽度和高度
-    this.scaleWidth = this.image.width * this.scale;
-    this.scaleHeight = this.image.height * this.scale;
+    this.image.width = this.image.imageElement.width * this.canvasScale.value;
+    this.image.height = this.image.imageElement.height * this.canvasScale.value;
   }
 
   private initEventListeners() {
     this.canvas.addEventListener('mouseleave', (e) => {
-      this.dragging = false;
+      this.mouse.dragging = false;
     });
     document.addEventListener('mouseup', (e) => {
       if (!this.canvas.contains(e.target as Node)) {
-        this.dragging = false;
+        this.mouse.dragging = false;
       }
     });
 
-    this.canvas.addEventListener('mousedown', this.startDragging.bind(this));
-    this.canvas.addEventListener('mousemove', this.dragImage.bind(this));
-    this.canvas.addEventListener('mouseup', this.stopDragging.bind(this));
+    this.canvas.addEventListener('mousedown', this.handleMousedown.bind(this));
+    this.canvas.addEventListener('mousemove', this.handleMousemove.bind(this));
+    this.canvas.addEventListener('mouseup', this.handleMouseup.bind(this));
+    this.canvas.addEventListener('wheel', this.handleWheel.bind(this));
 
-    this.canvas.addEventListener('wheel', this.zoomImage.bind(this));
 
-    window.addEventListener('resize', () => {
-      const newWidth = this.canvas.parentElement!.clientWidth;
-      const newHeight = this.canvas.parentElement!.clientHeight
+    // 最后记得停止观察
+    // ro.disconnect();
 
-      const ratio = newWidth / this.canvasOriginalWidth
+    // window.addEventListener('resize', () => {
+    //   const newWidth = this.canvas.parentElement!.clientWidth;
+    //   const newHeight = this.canvas.parentElement!.clientHeight
 
-      this.originX *= ratio
-      this.originY *= ratio
-      this.scaleWidth *= ratio
-      this.scaleHeight *= ratio
+    //   const ratio = newWidth / this.canvasOriginalWidth
 
-      this.textAttribute.X *= ratio
-      this.textAttribute.y *= ratio
-      this.textAttribute.fontSize *= ratio
+    //   this.originX *= ratio
+    //   this.originY *= ratio
+    //   this.scaleWidth *= ratio
+    //   this.scaleHeight *= ratio
 
-      this.cutX *= ratio
-      this.cutY *= ratio
-      this.cutWidth *= ratio
-      this.cutHeight *= ratio
+    //   this.textAttribute.X *= ratio
+    //   this.textAttribute.y *= ratio
+    //   this.textAttribute.fontSize *= ratio
 
-      for (let index = 0; index < this.pathData.length; index++) {
-        const point = this.pathData[index];
-        point.x *= ratio
-        point.y *= ratio
-      }
+    //   this.cutX *= ratio
+    //   this.cutY *= ratio
+    //   this.cutWidth *= ratio
+    //   this.cutHeight *= ratio
 
-      this.canvasOriginalWidth = newWidth;
-      this.canvasOriginalHeight = newHeight;
+    //   for (let index = 0; index < this.pathData.length; index++) {
+    //     const point = this.pathData[index];
+    //     point.x *= ratio
+    //     point.y *= ratio
+    //   }
 
-      this.canvas.width = newWidth * this.dpi
-      this.canvas.height = newHeight * this.dpi
+    //   this.canvasOriginalWidth = newWidth;
+    //   this.canvasOriginalHeight = newHeight;
 
-      this.draw()
+    //   this.canvas.width = newWidth * this.dpi
+    //   this.canvas.height = newHeight * this.dpi
 
-    });
+    //   this.draw()
+
+    // });
   }
-  private startDragging(event: MouseEvent) {
+  handleViewportResize(width: number, height: number) {
+    console.log(width, height);
+    this.viewportWidth = width;
+    this.viewportHeight = height;
+
+    this.canvas.width = width * this.dpi
+    this.canvas.height = height * this.dpi
+
+    this.canvas.style.width = width + 'px'
+    this.canvas.style.height = height + 'px'
+
+    this.draw()
+  }
+
+  private handleMousedown(event: MouseEvent) {
     if (event.buttons !== 1) return;
     // this.isDrawLine = true
     // if (this.isDrawLine) {
     //   [this.lineX, this.lineY] = [event.offsetX, event.offsetY]
     //   return
     // }
-    this.dragging = true;
-    this.lastX = event.offsetX;
-    this.lastY = event.offsetY;
+    this.mouse.dragging = true;
+    this.mouse.lastX = event.offsetX;
+    this.mouse.lastY = event.offsetY;
 
-    const edge = this.getEdge(event.offsetX, event.offsetY)
+    // const edge = this.getEdge(event.offsetX, event.offsetY)
 
-    if (edge) {
-      this.mouseInCropModule = 'edge'
-      this.resizeEdge = edge;
-    }
+    // if (edge) {
+    //   this.mouseInCropModule = 'edge'
+    //   this.resizeEdge = edge;
+    // }
 
-    if (this.isInCropBox(event.offsetX, event.offsetY)) {
-      this.mouseInCropModule = 'crop'
-    }
+    // if (this.isInCropBox(event.offsetX, event.offsetY)) {
+    //   this.mouseInCropModule = 'crop'
+    // }
 
     // if (this.resizeEdge) {
     //   this.isResizing = true;
     // }
 
   }
-  private dragImage(event: MouseEvent) {
+  private handleMousemove(event: MouseEvent) {
     let mouseX = event.offsetX;
     let mouseY = event.offsetY;
+
+    const dx = mouseX - this.mouse.lastX;
+    const dy = mouseY - this.mouse.lastY;
+
     // if (this.isDrawLine) {
     //   // hsl 色相(0 - 360) 饱和度 明度
     //   this.ctx.strokeStyle = `hsl(100, 90%, 50%)`;
@@ -686,84 +731,84 @@ class CanvasImageManipulator {
     //   return
     // }
 
-    if (this.dragging) {
-      const dx = mouseX - this.lastX;
-      const dy = mouseY - this.lastY;
+    if (this.mouse.dragging) {
 
-      this.lastX = mouseX;
-      this.lastY = mouseY;
+      this.mouse.lastX = mouseX;
+      this.mouse.lastY = mouseY;
 
-      if (this.cropping) {
-        if (this.mouseInCropModule === 'edge') {
-          mouseX = Math.max(mouseX, this.originX)
-          mouseX = Math.min(mouseX, this.originX + this.scaleWidth)
-          mouseY = Math.max(mouseY, this.originY)
-          mouseY = Math.min(mouseY, this.originY + this.scaleHeight)
-          switch (this.resizeEdge) {
-            case "left":
-              this.cutWidth += this.cutX - mouseX;
-              this.cutX = mouseX;
-              break;
-            case "right":
-              this.cutWidth = mouseX - this.cutX;
-              break;
-            case "top":
-              this.cutHeight += this.cutY - mouseY;
-              this.cutY = mouseY;
-              break;
-            case "bottom":
-              this.cutHeight = mouseY - this.cutY;
-              break;
-          }
-        }
-        if (this.mouseInCropModule === 'crop') {
-          this.cutX += dx;
-          this.cutY += dy;
+      // if (this.cropping) {
+      // if (this.mouseInCropModule === 'edge') {
+      //   mouseX = Math.max(mouseX, this.originX)
+      //   mouseX = Math.min(mouseX, this.originX + this.scaleWidth)
+      //   mouseY = Math.max(mouseY, this.originY)
+      //   mouseY = Math.min(mouseY, this.originY + this.scaleHeight)
+      //   switch (this.resizeEdge) {
+      //     case "left":
+      //       this.cutWidth += this.cutX - mouseX;
+      //       this.cutX = mouseX;
+      //       break;
+      //     case "right":
+      //       this.cutWidth = mouseX - this.cutX;
+      //       break;
+      //     case "top":
+      //       this.cutHeight += this.cutY - mouseY;
+      //       this.cutY = mouseY;
+      //       break;
+      //     case "bottom":
+      //       this.cutHeight = mouseY - this.cutY;
+      //       break;
+      //   }
+      // }
+      // if (this.mouseInCropModule === 'crop') {
+      //   this.cutX += dx;
+      //   this.cutY += dy;
 
-          // 确保裁剪框在图片范围内
-          this.cutX = Math.max(
-            this.cutX,
-            this.originX
-          );
+      //   // 确保裁剪框在图片范围内
+      //   this.cutX = Math.max(
+      //     this.cutX,
+      //     this.originX
+      //   );
 
-          this.cutY = Math.max(
-            this.cutY,
-            this.originY
-          );
+      //   this.cutY = Math.max(
+      //     this.cutY,
+      //     this.originY
+      //   );
 
-          if (this.cutX + this.cutWidth > this.originX + this.scaleWidth) {
-            this.cutX = this.originX + this.scaleWidth - this.cutWidth
-          }
+      //   if (this.cutX + this.cutWidth > this.originX + this.scaleWidth) {
+      //     this.cutX = this.originX + this.scaleWidth - this.cutWidth
+      //   }
 
-          if (this.cutY + this.cutHeight > this.originY + this.scaleHeight) {
-            this.cutY = this.originY + this.scaleHeight - this.cutHeight
-          }
+      //   if (this.cutY + this.cutHeight > this.originY + this.scaleHeight) {
+      //     this.cutY = this.originY + this.scaleHeight - this.cutHeight
+      //   }
 
-        }
-      } else {
-        // if (this.flip === 'horizontal') {
-        //   this.originX -= dx;
-        //   this.originY += dy;
-        // } else if (this.flip === 'vertical') {
-        //   this.originX += dx;
-        //   this.originY -= dy;
-        // } else if (this.flip === 'normal') {
-        this.originX += dx;
-        this.originY += dy;
-        for (let index = 0; index < this.pathData.length; index++) {
-          const point = this.pathData[index];
-          point.x += dx
-          point.y += dy
-        }
+      // }
+      // } else {
+      // if (this.flip === 'horizontal') {
+      //   this.originX -= dx;
+      //   this.originY += dy;
+      // } else if (this.flip === 'vertical') {
+      //   this.originX += dx;
+      //   this.originY -= dy;
+      // } else if (this.flip === 'normal') {
+      this.image.x += dx;
+      this.image.y += dy;
 
 
-        this.textAttribute.X += dx
-        this.textAttribute.y += dy
-        // }
-      }
+      // for (let index = 0; index < this.pathData.length; index++) {
+      //   const point = this.pathData[index];
+      //   point.x += dx
+      //   point.y += dy
+      // }
+
+
+      // this.textAttribute.X += dx
+      // this.textAttribute.y += dy
+      // }
+      // }
       this.draw()
     } else {
-      this.canvas.style.cursor = this.getCursorStyle(mouseX, mouseY);
+      // this.canvas.style.cursor = this.getCursorStyle(mouseX, mouseY);
     }
   }
   private getCorner(x: number, y: number) {
@@ -788,149 +833,151 @@ class CanvasImageManipulator {
     return null;
   }
   private getEdge(x: number, y: number) {
-    if (Math.abs(x - this.cutX) < this.cutLineWidth) return "left";
-    if (Math.abs(x - (this.cutX + this.cutWidth)) < this.cutLineWidth) return "right";
-    if (Math.abs(y - this.cutY) < this.cutLineWidth) return "top";
-    if (Math.abs(y - (this.cutY + this.cutHeight)) < this.cutLineWidth) return "bottom";
-    return null;
+    // if (Math.abs(x - this.cutX) < this.cutLineWidth) return "left";
+    // if (Math.abs(x - (this.cutX + this.cutWidth)) < this.cutLineWidth) return "right";
+    // if (Math.abs(y - this.cutY) < this.cutLineWidth) return "top";
+    // if (Math.abs(y - (this.cutY + this.cutHeight)) < this.cutLineWidth) return "bottom";
+    // return null;
   }
   private getCursorStyle(x: number, y: number) {
-    const corner = this.getCorner(x, y);
-    const edge = this.getEdge(x, y);
-    if (corner) {
-      switch (corner) {
-        case "tl":
-        case "br":
-          return "nwse-resize";
-        case "tr":
-        case "bl":
-          return "nesw-resize";
-      }
-    }
-    if (edge) {
-      switch (edge) {
-        case "left":
-        case "right":
-          return "ew-resize";
-        case "top":
-        case "bottom":
-          return "ns-resize";
-      }
-    }
-    if (this.isInCropBox(x, y)) {
-      return "move";
-    }
-    return "default";
+    // const corner = this.getCorner(x, y);
+    // const edge = this.getEdge(x, y);
+    // if (corner) {
+    //   switch (corner) {
+    //     case "tl":
+    //     case "br":
+    //       return "nwse-resize";
+    //     case "tr":
+    //     case "bl":
+    //       return "nesw-resize";
+    //   }
+    // }
+    // if (edge) {
+    //   switch (edge) {
+    //     case "left":
+    //     case "right":
+    //       return "ew-resize";
+    //     case "top":
+    //     case "bottom":
+    //       return "ns-resize";
+    //   }
+    // }
+    // if (this.isInCropBox(x, y)) {
+    //   return "move";
+    // }
+    // return "default";
   }
-  private isInCropBox(x: number, y: number): boolean {
-    return (
-      x > this.cutX &&
-      x < this.cutX + this.cutWidth &&
-      y > this.cutY &&
-      y < this.cutY + this.cutHeight
-    );
-  }
-  private zoomImage(event: WheelEvent) {
+  // private isInCropBox(x: number, y: number): boolean {
+  //   return (
+  //     x > this.cutX &&
+  //     x < this.cutX + this.cutWidth &&
+  //     y > this.cutY &&
+  //     y < this.cutY + this.cutHeight
+  //   );
+  // }
+  private handleWheel(event: WheelEvent) {
     event.preventDefault();
 
-    let mouseX = event.offsetX;
-    let mouseY = event.offsetY;
+    let centreX = event.offsetX;
+    let centreY = event.offsetY;
 
     const wheel = event.deltaY < 0 ? 1 : -1;
+
     const zoom = Math.exp(wheel * 0.1);
 
-    const newScale = this.scale * zoom;
+    const newScale = this.canvasScale.value * zoom;
 
-    if (newScale < this.baseScale * this.minScale || newScale > this.baseScale * this.maxScale) return;
-
-
-    // // 计算按照鼠标点进行缩放计算
-    // this.originX = mouseX - (mouseX - this.originX) * zoom;
-    // this.originY = mouseY - (mouseY - this.originY) * zoom;
-
+    if (newScale < this.canvasScale.min || newScale > this.canvasScale.max) return;
 
     // 计算按照鼠标点进行缩放计算
-    this.originX = (this.originX - mouseX) * zoom + mouseX;
-    this.originY = (this.originY - mouseY) * zoom + mouseY;
+    this.image.x = (this.image.x - centreX) * zoom + centreX;
+    this.image.y = (this.image.y - centreY) * zoom + centreY;
 
 
-    this.cutX = (this.cutX - mouseX) * zoom + mouseX
-    this.cutY = (this.cutY - mouseY) * zoom + mouseY
+    // this.cutX = (this.cutX - mouseX) * zoom + mouseX
+    // this.cutY = (this.cutY - mouseY) * zoom + mouseY
 
-    this.scale = newScale;
+    this.canvasScale.value = newScale;
 
-    // 计算新的宽度和高度
-    this.scaleWidth = this.scaleWidth * zoom;
-    this.scaleHeight = this.scaleHeight * zoom;
+    // // 计算新的宽度和高度
+    this.image.width = this.image.width * zoom;
+    this.image.height = this.image.height * zoom;
 
-    this.cutWidth = this.cutWidth * zoom;
-    this.cutHeight = this.cutHeight * zoom;
+    // this.cutWidth = this.cutWidth * zoom;
+    // this.cutHeight = this.cutHeight * zoom;
 
-    this.lineWidth *= zoom
+    // this.lineWidth *= zoom
 
 
-    for (let index = 0; index < this.pathData.length; index++) {
-      const point = this.pathData[index];
-      const newX = (point.x - mouseX) * zoom + mouseX;
-      const newY = (point.y - mouseY) * zoom + mouseY;
-      point.x = newX
-      point.y = newY
-    }
+    // for (let index = 0; index < this.pathData.length; index++) {
+    //   const point = this.pathData[index];
+    //   const newX = (point.x - mouseX) * zoom + mouseX;
+    //   const newY = (point.y - mouseY) * zoom + mouseY;
+    //   point.x = newX
+    //   point.y = newY
+    // }
 
-    this.textAttribute.X = (this.textAttribute.X - mouseX) * zoom + mouseX
-    this.textAttribute.y = (this.textAttribute.y - mouseY) * zoom + mouseY
-    this.textAttribute.fontSize = this.textAttribute.fontSize * zoom
+    // this.textAttribute.X = (this.textAttribute.X - mouseX) * zoom + mouseX
+    // this.textAttribute.y = (this.textAttribute.y - mouseY) * zoom + mouseY
+    // this.textAttribute.fontSize = this.textAttribute.fontSize * zoom
 
     this.draw()
   }
-
-  private stopDragging() {
-    this.dragging = false;
+  destroy() {
+    this.canvas.removeEventListener("mousedown", this.handleMousedown);
+    this.canvas.removeEventListener("mousemove", this.handleMousemove);
+    this.canvas.removeEventListener("mouseup", this.handleMouseup);
+    this.canvas.removeEventListener("wheel", this.handleWheel);
+    this.ro.disconnect();
+  }
+  private handleMouseup() {
+    this.mouse.dragging = false;
     // this.isDrawLine = false
     // console.log(JSON.stringify(this.pathData));
 
-    this.lastX = 0;
-    this.lastY = 0;
+    // this.lastX = 0;
+    // this.lastY = 0;
   }
 
   private draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    if (this.cropping) {
+    if (this.canvasModel === CanvasModel.Crop) {
       this.drawCover()
-      this.drawCutBox()
+      this.drawCropRect()
     }
 
-    if (!this.isEndCrop) {
-      this.sourceWidth = this.image.width;
-      this.sourceHeight = this.image.height;
-      this.sourceX = 0;
-      this.sourceY = 0;
-    }
+    // if (!this.isEndCrop) {
+    //   this.sourceWidth = this.image.width;
+    //   this.sourceHeight = this.image.height;
+    //   this.sourceX = 0;
+    //   this.sourceY = 0;
+    // }
 
     this.drawImage()
 
-    // this.ctx.restore()
-    this.ctx.strokeStyle = `hsl(100, 90%, 50%)`;
-    this.ctx.lineWidth = this.lineWidth;
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
-    this.ctx.beginPath();
-    for (let index = 0; index < this.pathData.length; index++) {
-      const point = this.pathData[index];
-      if (index === 0) {
-        this.ctx.moveTo(point.x, point.y);
-      } else {
-        this.ctx.lineTo(point.x, point.y);
-      }
-    }
-    this.ctx.stroke();
 
-    // 绘制文本
-    this.ctx.font = `${this.textAttribute.fontSize}px ${this.textAttribute.fontFamily}`;
-    this.ctx.textAlign = this.textAttribute.textAlign as CanvasTextAlign;
-    this.ctx.fillStyle = this.textAttribute.fillStyle;
-    this.ctx.fillText('Hello Canvas', this.textAttribute.X, this.textAttribute.y);
+    // // this.ctx.restore()
+    // this.ctx.strokeStyle = `hsl(100, 90%, 50%)`;
+    // this.ctx.lineWidth = this.lineWidth;
+    // this.ctx.lineCap = 'round';
+    // this.ctx.lineJoin = 'round';
+    // this.ctx.beginPath();
+    // for (let index = 0; index < this.pathData.length; index++) {
+    //   const point = this.pathData[index];
+    //   if (index === 0) {
+    //     this.ctx.moveTo(point.x, point.y);
+    //   } else {
+    //     this.ctx.lineTo(point.x, point.y);
+    //   }
+    // }
+    // this.ctx.stroke();
+
+    // // 绘制文本
+    // this.ctx.font = `${this.textAttribute.fontSize}px ${this.textAttribute.fontFamily}`;
+    // this.ctx.textAlign = this.textAttribute.textAlign as CanvasTextAlign;
+    // this.ctx.fillStyle = this.textAttribute.fillStyle;
+    // this.ctx.fillText('Hello Canvas', this.textAttribute.X, this.textAttribute.y);
   }
 
 
@@ -958,32 +1005,32 @@ class CanvasImageManipulator {
     //   this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, this.originY, this.scaleWidth, this.scaleHeight);
     // }
 
-    this.ctx.translate(this.originX + this.scaleWidth / 2, this.originY + this.scaleHeight / 2);
-    this.ctx.rotate(this.angle * Math.PI / 180);
-    this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, -this.scaleWidth / 2, -this.scaleHeight / 2, this.scaleWidth, this.scaleHeight);
+    this.ctx.translate(this.image.x + this.image.width / 2, this.image.y + this.image.height / 2);
+    this.ctx.rotate(this.image.angle * Math.PI / 180);
+    this.ctx.drawImage(this.image.imageElement, 0, 0, this.image.imageElement.width, this.image.imageElement.height, -this.image.width / 2, -this.image.height / 2, this.image.width, this.image.height);
     this.ctx.restore()
   }
 
-  private drawCutBox() {
+  private drawCropRect() {
     this.ctx.save()
 
     // 绘制裁剪框
     this.ctx.strokeStyle = 'rgba(255,255,255)'
-    this.ctx.lineWidth = this.cutLineWidth
-    this.ctx.strokeRect(this.cutX, this.cutY, this.cutWidth, this.cutHeight)
+    this.ctx.lineWidth = this.cropRect.lineWidth
+    this.ctx.strokeRect(this.cropRect.x, this.cropRect.y, this.cropRect.width, this.cropRect.height)
 
     // 绘制参考线
-    this.ctx.lineWidth = this.cutReferenceLineWidth
+    this.ctx.lineWidth = this.cropRect.referenceLineWidth
     this.ctx.strokeStyle = 'rgba(255,255,255,.2)'
     this.ctx.beginPath()
-    this.ctx.moveTo(this.cutX, this.cutY + this.cutHeight / 3)
-    this.ctx.lineTo(this.cutX + this.cutWidth, this.cutY + this.cutHeight / 3)
-    this.ctx.moveTo(this.cutX, this.cutY + (this.cutHeight * 2) / 3)
-    this.ctx.lineTo(this.cutX + this.cutWidth, this.cutY + (this.cutHeight * 2) / 3)
-    this.ctx.moveTo(this.cutX + this.cutWidth / 3, this.cutY)
-    this.ctx.lineTo(this.cutX + this.cutWidth / 3, this.cutY + this.cutHeight)
-    this.ctx.moveTo(this.cutX + (this.cutWidth * 2) / 3, this.cutY)
-    this.ctx.lineTo(this.cutX + (this.cutWidth * 2) / 3, this.cutY + this.cutHeight)
+    this.ctx.moveTo(this.cropRect.x, this.cropRect.y + this.cropRect.height / 3)
+    this.ctx.lineTo(this.cropRect.x + this.cropRect.width, this.cropRect.y + this.cropRect.height / 3)
+    this.ctx.moveTo(this.cropRect.x, this.cropRect.y + (this.cropRect.height * 2) / 3)
+    this.ctx.lineTo(this.cropRect.x + this.cropRect.width, this.cropRect.y + (this.cropRect.height * 2) / 3)
+    this.ctx.moveTo(this.cropRect.x + this.cropRect.width / 3, this.cropRect.y)
+    this.ctx.lineTo(this.cropRect.x + this.cropRect.width / 3, this.cropRect.y + this.cropRect.height)
+    this.ctx.moveTo(this.cropRect.x + (this.cropRect.width * 2) / 3, this.cropRect.y)
+    this.ctx.lineTo(this.cropRect.x + (this.cropRect.width * 2) / 3, this.cropRect.y + this.cropRect.height)
     this.ctx.stroke()
 
     // 绘制Dot线点
@@ -1036,39 +1083,48 @@ class CanvasImageManipulator {
   private drawCover() {
     this.ctx.save()
     this.ctx.fillStyle = "rgba(0,0,0,0.5)"
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
-    // this.ctx.globalCompositeOperation = "source-atop"
-    this.ctx.clearRect(this.cutX, this.cutY, this.cutWidth, this.cutHeight);
+    this.ctx.globalCompositeOperation = "source-atop"
+    this.ctx.clearRect(this.cropRect.x, this.cropRect.y, this.cropRect.width, this.cropRect.height);
     this.ctx.restore()
   }
-  public startCrop() {
-    this.cropping = true
+  switchCanvasModel(value: CanvasModel) {
+    this.canvasModel = value
+    switch (this.canvasModel) {
+      case CanvasModel.Crop:
+        this.initCrop()
+        break
+      case CanvasModel.Draw:
+        break
+      default:
+        break
+    }
+  }
+  public initCrop() {
+    this.cropRect.width = this.image.width + this.cropRect.lineWidth
+    this.cropRect.height = this.image.height + this.cropRect.lineWidth
+    this.cropRect.x = this.image.x - this.cropRect.lineWidth / 2
+    this.cropRect.y = this.image.y - this.cropRect.lineWidth / 2
 
-    this.onResetImage()
-
-    this.cutX = this.originX - this.cutLineWidth / 2
-    this.cutY = this.originY - this.cutLineWidth / 2
-    this.cutWidth = this.scaleWidth + this.cutLineWidth
-    this.cutHeight = this.scaleHeight + this.cutLineWidth
+    // this.onResetImage()
 
     this.draw()
   }
-  public endCrop() {
-    this.cropping = false
-    this.isEndCrop = true
+  // public endCrop() {
+  //   // this.cropping = false
+  //   // this.isEndCrop = true
 
-    this.sourceX = (this.cutX - this.originX) / this.scale;
-    this.sourceY = (this.cutY - this.originY) / this.scale;
-    this.sourceWidth = this.cutWidth / this.scale;
-    this.sourceHeight = this.cutHeight / this.scale;
+  //   // this.sourceX = (this.cutX - this.originX) / this.scale;
+  //   // this.sourceY = (this.cutY - this.originY) / this.scale;
+  //   // this.sourceWidth = this.cutWidth / this.scale;
+  //   // this.sourceHeight = this.cutHeight / this.scale;
 
-    this.originX = this.cutX
-    this.originY = this.cutY
-    this.scaleWidth = this.cutWidth
-    this.scaleHeight = this.cutHeight
+  //   // this.originX = this.cutX
+  //   // this.originY = this.cutY
+  //   // this.scaleWidth = this.cutWidth
+  //   // this.scaleHeight = this.cutHeight
 
-    this.draw()
-  }
+  // this.draw()
+  // }
 }
 
 const canvasInstance = shallowRef<CanvasImageManipulator | null>(null)
@@ -1143,10 +1199,6 @@ const handleDragRange = (event: InputEvent) => {
         </div>
       </div>
       <div flex font-size="22px" class="bar" pos-relative>
-        <!-- <div :class="[item.icon, 'bar-item-btn']" :title="item.title" :ref="setBarItemRefs"
-          v-for="(item, idx) in barOption" :key="idx" @click="handleChangeIndex(item, idx)"></div>
-        <div class="active-line" ref="activeLine" pos-absolute w-18px h-5px left-0
-          :style="{ left: activeTranslateLeft + 'px' }"></div> -->
       </div>
       <div class="right p-r-3">
         <div btn @click="handleClickSavaImage">保存</div>
@@ -1244,9 +1296,7 @@ const handleDragRange = (event: InputEvent) => {
                 v-for="(item, idx) in fontStyleList" :key="idx" :class="[item.use ? 'bg-primary' : '']"
                 @click="item.use = !item.use">
                 <div :class="[item.icon]"></div>
-
               </div>
-
             </div>
           </div>
         </div>
@@ -1257,7 +1307,7 @@ const handleDragRange = (event: InputEvent) => {
         <canvas id="canvas"></canvas>
       </div>
     </div>
-    <img class="w100px h100px" src="./hjNvQge.jpeg" alt="" srcset="">
+    <!-- <img class="w100px h100px" src="./hjNvQge.jpeg" alt="" srcset=""> -->
     <!-- <div h-40px w-full class="bg-[#23292c]" flex justify-between items-center> -->
 
     <!-- <div class=" color-[#fff]">{{ canvasInstance?.scale }}</div>
