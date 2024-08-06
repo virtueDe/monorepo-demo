@@ -49,7 +49,7 @@ export const getMousePosi = (x: number, y: number, w: number, h: number) => {
     [x + w - 10, y - 10, 20, 20],
     [x + w - 10, y + h - 10, 20, 20],
     [x - 10, y + h - 10, 20, 20],
-    // // 上 右 下 左 四条边
+    // 上 右 下 左 四条边
     [x - 4, y - 4, w + 4, 8],
     [x + w - 4, y - 4, 8, h + 4],
     [x - 4, y + h - 4, w + 4, 8],

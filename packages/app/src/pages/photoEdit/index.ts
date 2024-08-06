@@ -37,9 +37,9 @@ class PhotoEdit {
     x: number[]
     y: number[]
   } = {
-    x: [],
-    y: [],
-  }
+      x: [],
+      y: [],
+    }
 
   pointerCurrent = {
     x: 0,
