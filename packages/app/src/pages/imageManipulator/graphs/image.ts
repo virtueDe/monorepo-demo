@@ -6,5 +6,6 @@ export class Image {
   x: number = 0
   y: number = 0
   angle: number = 0;
+  flip = { x: 1, y: 1 }
   constructor() { }
 }

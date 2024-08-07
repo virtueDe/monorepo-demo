@@ -1,14 +1,17 @@
 
-enum MouseInCropModule {
+export enum MouseInCropModule {
   InCrop = 'inCrop',
   InOut = 'inOut',
-
-  InDot = 'inDot',
 
   InTop = 'inTop',
   InBottom = 'inBottom',
   InLeft = 'inLeft',
   InRight = 'inRight',
+
+  InLeftTop = 'inLeftTop',
+  InRightBottom = 'inRightBottom',
+  InLeftBottom = 'inLeftBottom',
+  InRightTop = 'inRightTop',
 }
 
 

@@ -52,9 +52,13 @@ export const getCropDot = (x: number, y: number, w: number, h: number, size: num
  */
 export const getCropLine = (x: number, y: number, w: number, h: number, size: number) => {
   return [
+    // 上
     [x - size / 2, y - size / 2, w + size / 2, size],
+    // 下
     [x - size / 2, y + h - size / 2, w + 4, size],
+    // 左
     [x - size / 2, y - size / 2, size, h + size / 2],
+    // 右
     [x + w - size / 2, y - size / 2, size, h + size / 2],
   ]
 }

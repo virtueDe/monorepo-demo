@@ -59,26 +59,52 @@ const barOption = ref<BarItem[]>([
 
 
 const rotate = ref(0)
-interface CropBarItem extends BarItem { }
+type flipValue = { x: number, y: number }
+interface CropBarItem extends BarItem {
+  value: number | flipValue
+}
 const cropBarOption = ref<CropBarItem[]>([
   {
     icon: 'i-carbon:rotate-counterclockwise',
     title: '向左旋转90度',
+    value: -90
   },
   {
     icon: 'i-carbon:rotate-clockwise',
     title: '向右旋转90度',
+    value: 90
   },
   {
     icon: 'i-carbon:reflect-horizontal',
     title: '水平翻转',
+    value: { x: 1, y: 1 }
   },
   {
     icon: 'i-carbon:reflect-vertical',
     title: '垂直翻转',
+    value: { x: 1, y: 1 }
   },
 
 ])
+
+const handleClickCropBar = (item: CropBarItem, index: number) => {
+  if (typeof item.value === 'number') {
+    rotate.value += item.value
+    canvasInstance.value?.rotation(rotate.value)
+  } else {
+    canvasInstance.value?.flip(item.value.x, item.value.y)
+    if (index === 2) {
+      item.value.x = -item.value.x
+      canvasInstance.value?.flip(item.value.x, item.value.y)
+    } else if (index === 3) {
+      item.value.y = -item.value.y
+      canvasInstance.value?.flip(item.value.x, item.value.y)
+    }
+  }
+}
+const handleRotationInput = () => {
+  canvasInstance.value?.rotation(rotate.value)
+}
 
 interface ColorOptionItem {
   min: number
@@ -233,7 +259,14 @@ const handleChangeIndex = (item: BarItem, index: number) => {
 
     if (index === 1) {
       canvasInstance.value?.switchCanvasModel(CanvasModel.Crop)
+    } else if (index === 0) {
+      canvasInstance.value?.switchCanvasModel(CanvasModel.Preview)
     }
+    // else if (index === 3) {
+    //   canvasInstance.value?.switchCanvasModel(CanvasModel.Paint)
+    // }else if (index === 4) {
+    //   canvasInstance.value?.switchCanvasModel(CanvasModel.Filter)
+    // }
   })
 
 }
@@ -356,13 +389,15 @@ const handleDragRange = (event: InputEvent) => {
             class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px">
             <div class="text-left mb12px font-size-14px">旋转与翻转</div>
             <div class="flex">
-              <input class="w-100%" type="range" min="-180" max="180" v-model="rotate" step="1">
+              <input @input="handleRotationInput" class="w-100%" type="range" min="-180" max="180" v-model="rotate"
+                step="1">
               <div class="ml10px w-40px">{{ rotate }}°</div>
             </div>
             <div class="flex justify-between group mt12px mb12px">
               <div :class="[item.icon]"
                 class="cursor-pointer font-size-18px hover:color-[#A9A9A9] transition duration-200 ease-in-out"
-                v-for="(item, idx) in cropBarOption" :key="idx" :title="item.title"></div>
+                v-for="(item, idx) in cropBarOption" :key="idx" :title="item.title"
+                @click="handleClickCropBar(item, idx)"></div>
             </div>
           </div>
           <div v-if="currentBarIndex === 2"

@@ -1,4 +1,4 @@
-import { CropRect, Image } from './graphs/index'
+import { CropRect, Image, MouseInCropModule } from './graphs/index'
 import { getCropReferenceLine, getCropDot, getCropLine, checkInPath } from './utils';
 
 
@@ -283,15 +283,14 @@ export class CanvasImageManipulator {
     }
     return [Math.round(h * 360), Math.round(s * 100), Math.round(v * 100)]
   }
-  public rotation(deg: number) {
-    // console.log(deg);
-    // this.angle = deg
-    // canvas 图片旋转
-    // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    // this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
-    // this.ctx.rotate(deg * Math.PI / 180);
-    // this.ctx.drawImage(this.image, -this.image.width / 2, -this.image.height / 2);
-    // this.draw()
+  rotation(deg: number) {
+    this.image.angle = deg
+    this.draw()
+  }
+  flip(x: number, y: number) {
+    this.image.flip.x = x
+    this.image.flip.y = y
+    this.draw()
   }
   private onResetImage() {
     const canvasAspect = this.viewportWidth / this.viewportHeight;
@@ -383,14 +382,16 @@ export class CanvasImageManipulator {
 
   private handleMousedown(event: MouseEvent) {
     if (event.buttons !== 1) return;
+    let mouseX = event.offsetX;
+    let mouseY = event.offsetY;
     // this.isDrawLine = true
     // if (this.isDrawLine) {
     //   [this.lineX, this.lineY] = [event.offsetX, event.offsetY]
     //   return
     // }
     this.mouse.dragging = true;
-    this.mouse.lastX = event.offsetX;
-    this.mouse.lastY = event.offsetY;
+    this.mouse.lastX = mouseX;
+    this.mouse.lastY = mouseY;
 
     // const edge = this.getEdge(event.offsetX, event.offsetY)
 
@@ -407,6 +408,48 @@ export class CanvasImageManipulator {
     //   this.isResizing = true;
     // }
 
+    if (this.canvasModel === CanvasModel.Crop) {
+      if (checkInPath(mouseX * this.dpi, mouseY * this.dpi, [this.cropRect.x, this.cropRect.y, this.cropRect.width, this.cropRect.height], this.ctx)) {
+        this.cropRect.InCropModule = MouseInCropModule.InCrop
+      } else {
+        this.cropRect.InCropModule = MouseInCropModule.InOut
+      }
+
+      const listCursor: {
+        [key: number]: MouseInCropModule
+      } = {
+        0: MouseInCropModule.InTop,
+        1: MouseInCropModule.InBottom,
+        2: MouseInCropModule.InLeft,
+        3: MouseInCropModule.InRight
+      }
+      this.cropRect.lineDataList.forEach((item, index) => {
+        if (checkInPath(mouseX * this.dpi, mouseY * this.dpi, item, this.ctx)) {
+          this.cropRect.InCropModule = listCursor[index]
+        }
+      })
+
+
+      const dotCursor: {
+        [key: number]: MouseInCropModule
+      } = {
+        0: MouseInCropModule.InTop,
+        1: MouseInCropModule.InBottom,
+        2: MouseInCropModule.InLeft,
+        3: MouseInCropModule.InRight,
+        4: MouseInCropModule.InLeftTop,
+        5: MouseInCropModule.InRightTop,
+        6: MouseInCropModule.InLeftBottom,
+        7: MouseInCropModule.InRightBottom,
+      }
+      this.cropRect.dotDataList.forEach((item, index) => {
+        if (checkInPath(mouseX * this.dpi, mouseY * this.dpi, item, this.ctx)) {
+          this.cropRect.InCropModule = dotCursor[index]
+        }
+      })
+    }
+
+    console.log(this.cropRect.InCropModule);
   }
   private handleMousemove(event: MouseEvent) {
     let mouseX = event.offsetX;
@@ -446,72 +489,63 @@ export class CanvasImageManipulator {
 
       this.mouse.lastX = mouseX;
       this.mouse.lastY = mouseY;
+      if (this.canvasModel === CanvasModel.Crop) {
+        switch (this.cropRect.InCropModule) {
+          case MouseInCropModule.InTop:
+            this.cropRect.y += dy
+            this.cropRect.height -= dy
+            break;
+          case MouseInCropModule.InBottom:
+            this.cropRect.height += dy
+            break;
+          case MouseInCropModule.InLeft:
+            this.cropRect.x += dx
+            this.cropRect.width -= dx
+            break;
+          case MouseInCropModule.InRight:
+            this.cropRect.width += dx
+            break;
+          case MouseInCropModule.InLeftTop:
+            this.cropRect.x += dx
+            this.cropRect.y += dy
+            this.cropRect.width -= dx
+            this.cropRect.height -= dy
+            break;
+          case MouseInCropModule.InRightTop:
+            this.cropRect.y += dy
+            this.cropRect.width += dx
+            this.cropRect.height -= dy
+            break;
+          case MouseInCropModule.InLeftBottom:
+            this.cropRect.x += dx
+            this.cropRect.width -= dx
+            this.cropRect.height += dy
+            break;
+          case MouseInCropModule.InRightBottom:
+            this.cropRect.width += dx
+            this.cropRect.height += dy
+            break;
+          case MouseInCropModule.InCrop:
+            // case MouseInCropModule.InOut:
+            this.cropRect.x += dx
+            this.cropRect.y += dy
+            break;
+          default:
+            break;
+        }
 
+        // 限制裁剪框的位置和大小不能超出图片范围
+        this.cropRect.x = Math.min(Math.max(this.image.x, this.cropRect.x), this.image.x + this.image.width - this.cropRect.width);
+        this.cropRect.y = Math.min(Math.max(this.image.y, this.cropRect.y), this.image.y + this.image.height - this.cropRect.height);
 
-
-      switch (this.canvasModel) {
-        case CanvasModel.Crop:
-          break;
-        default:
-          break;
+        this.cropRect.width = Math.min(Math.max(50, this.cropRect.width), this.image.width);
+        this.cropRect.height = Math.min(Math.max(50, this.cropRect.height), this.image.height);
+      } else {
+        this.image.x += dx;
+        this.image.y += dy;
       }
 
 
-      // if (this.cropping) {
-      // if (this.mouseInCropModule === 'edge') {
-      //   mouseX = Math.max(mouseX, this.originX)
-      //   mouseX = Math.min(mouseX, this.originX + this.scaleWidth)
-      //   mouseY = Math.max(mouseY, this.originY)
-      //   mouseY = Math.min(mouseY, this.originY + this.scaleHeight)
-      //   switch (this.resizeEdge) {
-      //     case "left":
-      //       this.cutWidth += this.cutX - mouseX;
-      //       this.cutX = mouseX;
-      //       break;
-      //     case "right":
-      //       this.cutWidth = mouseX - this.cutX;
-      //       break;
-      //     case "top":
-      //       this.cutHeight += this.cutY - mouseY;
-      //       this.cutY = mouseY;
-      //       break;
-      //     case "bottom":
-      //       this.cutHeight = mouseY - this.cutY;
-      //       break;
-      //   }
-      // }
-      // if (this.mouseInCropModule === 'crop') {
-      //   this.cutX += dx;
-      //   this.cutY += dy;
-
-      //   // 确保裁剪框在图片范围内
-      //   this.cutX = Math.max(
-      //     this.cutX,
-      //     this.originX
-      //   );
-
-      //   this.cutY = Math.max(
-      //     this.cutY,
-      //     this.originY
-      //   );
-
-      //   if (this.cutX + this.cutWidth > this.originX + this.scaleWidth) {
-      //     this.cutX = this.originX + this.scaleWidth - this.cutWidth
-      //   }
-
-      //   if (this.cutY + this.cutHeight > this.originY + this.scaleHeight) {
-      //     this.cutY = this.originY + this.scaleHeight - this.cutHeight
-      //   }
-
-      // }
-      this.image.x += dx;
-      this.image.y += dy;
-
-
-
-
-
-      // }
       this.draw()
     } else {
       let cursor = 'default'
@@ -561,75 +595,13 @@ export class CanvasImageManipulator {
       this.canvas.style.cursor = cursor;
     }
   }
-  private getCorner(x: number, y: number) {
-    const size = 10;
-    // if (Math.abs(x - this.cutX) < size && Math.abs(y - this.cutY) < size)
-    //   return "tl"; // top-left
-    // if (
-    //   Math.abs(x - (this.cutX + this.cutWidth)) < size &&
-    //   Math.abs(y - this.cutY) < size
-    // )
-    //   return "tr"; // top-right
-    // if (
-    //   Math.abs(x - this.cutX) < size &&
-    //   Math.abs(y - (this.cutY + this.cutHeight)) < size
-    // )
-    //   return "bl"; // bottom-left
-    // if (
-    //   Math.abs(x - (this.cutX + this.cutWidth)) < size &&
-    //   Math.abs(y - (this.cutY + this.cutHeight)) < size
-    // )
-    //   return "br"; // bottom-right
-    return null;
-  }
-  private getEdge(x: number, y: number) {
-    // if (Math.abs(x - this.cutX) < this.cutLineWidth) return "left";
-    // if (Math.abs(x - (this.cutX + this.cutWidth)) < this.cutLineWidth) return "right";
-    // if (Math.abs(y - this.cutY) < this.cutLineWidth) return "top";
-    // if (Math.abs(y - (this.cutY + this.cutHeight)) < this.cutLineWidth) return "bottom";
-    // return null;
-  }
-  private getCursorStyle(x: number, y: number) {
-    // const corner = this.getCorner(x, y);
-    // const edge = this.getEdge(x, y);
-    // if (corner) {
-    //   switch (corner) {
-    //     case "tl":
-    //     case "br":
-    //       return "nwse-resize";
-    //     case "tr":
-    //     case "bl":
-    //       return "nesw-resize";
-    //   }
-    // }
-    // if (edge) {
-    //   switch (edge) {
-    //     case "left":
-    //     case "right":
-    //       return "ew-resize";
-    //     case "top":
-    //     case "bottom":
-    //       return "ns-resize";
-    //   }
-    // }
-    // if (this.isInCropBox(x, y)) {
-    //   return "move";
-    // }
-    // return "default";
-  }
-  // private isInCropBox(x: number, y: number): boolean {
-  //   return (
-  //     x > this.cutX &&
-  //     x < this.cutX + this.cutWidth &&
-  //     y > this.cutY &&
-  //     y < this.cutY + this.cutHeight
-  //   );
-  // }
   private handleWheel(event: WheelEvent) {
     event.preventDefault();
 
     let centreX = event.offsetX;
     let centreY = event.offsetY;
+
+
 
     const wheel = event.deltaY < 0 ? 1 : -1;
 
@@ -639,19 +611,27 @@ export class CanvasImageManipulator {
 
     if (newScale < this.canvasScale.min || newScale > this.canvasScale.max) return;
 
+    if (this.canvasModel === CanvasModel.Crop) {
+      centreX = this.image.x + this.image.width / 2
+      centreY = this.image.y + this.image.height / 2
+
+
+      this.cropRect.x = (this.cropRect.x - centreX) * zoom + centreX
+      this.cropRect.y = (this.cropRect.y - centreY) * zoom + centreY
+
+      this.cropRect.width *= zoom;
+      this.cropRect.height *= zoom;
+    }
+
     // 计算按照鼠标点进行缩放计算
     this.image.x = (this.image.x - centreX) * zoom + centreX;
     this.image.y = (this.image.y - centreY) * zoom + centreY;
 
-
-    // this.cutX = (this.cutX - mouseX) * zoom + mouseX
-    // this.cutY = (this.cutY - mouseY) * zoom + mouseY
-
     this.canvasScale.value = newScale;
 
     // // 计算新的宽度和高度
-    this.image.width = this.image.width * zoom;
-    this.image.height = this.image.height * zoom;
+    this.image.width *= zoom;
+    this.image.height *= zoom;
 
     // this.cutWidth = this.cutWidth * zoom;
     // this.cutHeight = this.cutHeight * zoom;
@@ -745,18 +725,13 @@ export class CanvasImageManipulator {
   private drawImage() {
     this.ctx.save()
     this.ctx.globalCompositeOperation = "destination-over"
-    // if (this.flip === 'horizontal') {
-    //   this.ctx.scale(-1, 1);
-    //   this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, -this.canvas.width + this.originX, this.originY, this.scaleWidth, this.scaleHeight);
-    // } else if (this.flip === 'vertical') {
-    //   this.ctx.scale(1, -1);
-    //   this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, -this.canvas.height + this.originY, this.scaleWidth, this.scaleHeight);
-    // } else if (this.flip === 'normal') {
-    //   this.ctx.drawImage(this.image, this.sourceX, this.sourceY, this.sourceWidth, this.sourceHeight, this.originX, this.originY, this.scaleWidth, this.scaleHeight);
-    // }
-
+    // 中心点
     this.ctx.translate(this.image.x + this.image.width / 2, this.image.y + this.image.height / 2);
+    // 翻转
+    this.ctx.scale(this.image.flip.x, this.image.flip.y);
+    // 旋转
     this.ctx.rotate(this.image.angle * Math.PI / 180);
+    // 渲染
     this.ctx.drawImage(this.image.imageElement, 0, 0, this.image.imageElement.width, this.image.imageElement.height, -this.image.width / 2, -this.image.height / 2, this.image.width, this.image.height);
     this.ctx.restore()
   }
@@ -794,7 +769,7 @@ export class CanvasImageManipulator {
   }
   private drawCropCover() {
     this.ctx.save()
-    this.ctx.fillStyle = "rgba(0,0,0,0.5)"
+    this.ctx.fillStyle = "rgba(0,0,0,0.8)"
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
     this.ctx.globalCompositeOperation = "source-atop"
     this.ctx.clearRect(this.cropRect.x, this.cropRect.y, this.cropRect.width, this.cropRect.height);
@@ -811,6 +786,7 @@ export class CanvasImageManipulator {
       default:
         break
     }
+    this.draw()
   }
   public initCrop() {
     this.cropRect.width = this.image.width + this.cropRect.lineWidth
@@ -820,7 +796,6 @@ export class CanvasImageManipulator {
 
     // this.onResetImage()
 
-    this.draw()
   }
   // public endCrop() {
   //   // this.cropping = false
