@@ -292,6 +292,18 @@ export class CanvasImageManipulator {
     this.image.flip.y = y
     this.draw()
   }
+  crop() {
+    this.image.sx += (this.cropRect.x - this.image.x) / this.canvasScale.value
+    this.image.sy += (this.cropRect.y - this.image.y) / this.canvasScale.value
+    this.image.sw = this.cropRect.width / this.canvasScale.value
+    this.image.sh = this.cropRect.height / this.canvasScale.value
+
+    this.image.x = this.cropRect.x
+    this.image.y = this.cropRect.y
+    this.image.width = this.cropRect.width
+    this.image.height = this.cropRect.height
+    this.draw()
+  }
   private onResetImage() {
     const canvasAspect = this.viewportWidth / this.viewportHeight;
     const imageAspect = this.image.imageElement.width / this.image.imageElement.height;
@@ -310,6 +322,11 @@ export class CanvasImageManipulator {
     // 计算新的宽度和高度
     this.image.width = this.image.imageElement.width * this.canvasScale.value;
     this.image.height = this.image.imageElement.height * this.canvasScale.value;
+
+    this.image.sx = 0
+    this.image.sy = 0
+    this.image.sw = this.image.imageElement.width
+    this.image.sh = this.image.imageElement.height
   }
 
   private initEventListeners() {
@@ -449,7 +466,7 @@ export class CanvasImageManipulator {
       })
     }
 
-    console.log(this.cropRect.InCropModule);
+    // console.log(this.cropRect.InCropModule);
   }
   private handleMousemove(event: MouseEvent) {
     let mouseX = event.offsetX;
@@ -732,7 +749,7 @@ export class CanvasImageManipulator {
     // 旋转
     this.ctx.rotate(this.image.angle * Math.PI / 180);
     // 渲染
-    this.ctx.drawImage(this.image.imageElement, 0, 0, this.image.imageElement.width, this.image.imageElement.height, -this.image.width / 2, -this.image.height / 2, this.image.width, this.image.height);
+    this.ctx.drawImage(this.image.imageElement, this.image.sx, this.image.sy, this.image.sw, this.image.sh, -this.image.width / 2, -this.image.height / 2, this.image.width, this.image.height);
     this.ctx.restore()
   }
 
@@ -793,25 +810,6 @@ export class CanvasImageManipulator {
     this.cropRect.height = this.image.height + this.cropRect.lineWidth
     this.cropRect.x = this.image.x - this.cropRect.lineWidth / 2
     this.cropRect.y = this.image.y - this.cropRect.lineWidth / 2
-
-    // this.onResetImage()
-
   }
-  // public endCrop() {
-  //   // this.cropping = false
-  //   // this.isEndCrop = true
-
-  //   // this.sourceX = (this.cutX - this.originX) / this.scale;
-  //   // this.sourceY = (this.cutY - this.originY) / this.scale;
-  //   // this.sourceWidth = this.cutWidth / this.scale;
-  //   // this.sourceHeight = this.cutHeight / this.scale;
-
-  //   // this.originX = this.cutX
-  //   // this.originY = this.cutY
-  //   // this.scaleWidth = this.cutWidth
-  //   // this.scaleHeight = this.cutHeight
-
-  // this.draw()
-  // }
 }
 

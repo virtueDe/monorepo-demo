@@ -102,6 +102,10 @@ const handleClickCropBar = (item: CropBarItem, index: number) => {
     }
   }
 }
+
+const handleClickCropImage = () => {
+  canvasInstance.value?.crop()
+}
 const handleRotationInput = () => {
   canvasInstance.value?.rotation(rotate.value)
 }
@@ -398,6 +402,10 @@ const handleDragRange = (event: InputEvent) => {
                 class="cursor-pointer font-size-18px hover:color-[#A9A9A9] transition duration-200 ease-in-out"
                 v-for="(item, idx) in cropBarOption" :key="idx" :title="item.title"
                 @click="handleClickCropBar(item, idx)"></div>
+            </div>
+
+            <div class="mt40px btn w100%" @click="handleClickCropImage">
+              确定裁剪
             </div>
           </div>
           <div v-if="currentBarIndex === 2"

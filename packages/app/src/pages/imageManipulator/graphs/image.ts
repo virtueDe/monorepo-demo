@@ -7,5 +7,9 @@ export class Image {
   y: number = 0
   angle: number = 0;
   flip = { x: 1, y: 1 }
+  sx: number = 0;
+  sy: number = 0;
+  sw: number = 0;
+  sh: number = 0;
   constructor() { }
 }
