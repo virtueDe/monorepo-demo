@@ -1,4 +1,5 @@
 <script setup lang="ts" generic="T extends any, O extends any">
+import { ImageStyleKey } from './imageManipulator/graphs';
 import { CanvasImageManipulator } from './imageManipulator/index'
 import { CanvasModel } from './imageManipulator/index'
 
@@ -113,48 +114,46 @@ const handleRotationInput = () => {
 interface ColorOptionItem {
   min: number
   max: number
-  value: number
-  handle?: (e: Event, item: ColorOptionItem) => void
   title: string
+  key: ImageStyleKey
 }
+
+const handleInputRange = () => {
+  canvasInstance.value?.changeImageStyled(toRaw(imageStyle))
+}
+
+const imageStyle = reactive<Record<ImageStyleKey, number>>({
+  brightness: 0,
+  contrast: 0,
+  exposure: 0,
+  saturation: 0,
+})
 
 const colorOption = ref<ColorOptionItem[]>([
   {
     min: -100,
     max: 100,
-    value: 0,
     title: '亮度',
-    handle: (e, item) => {
-      console.log('亮度', e.target, item);
-    }
+    key: 'brightness'
   },
   {
     min: -100,
     max: 100,
-    value: 0,
-    title: '饱和度',
-    handle: () => {
-      console.log('饱和度');
-    }
-  },
-  {
-    min: -100,
-    max: 100,
-    value: 0,
-    title: '对比度',
-    handle: () => {
-      console.log('对比度');
-    }
-  },
-  {
-    min: -100,
-    max: 100,
-    value: 0,
     title: '曝光度',
-    handle: () => {
-      console.log('曝光度');
-    }
-  }
+    key: 'exposure'
+  },
+  {
+    min: -100,
+    max: 100,
+    title: '对比度',
+    key: 'contrast'
+  },
+  {
+    min: -100,
+    max: 100,
+    title: '饱和度',
+    key: 'saturation'
+  },
 ])
 
 
@@ -265,6 +264,8 @@ const handleChangeIndex = (item: BarItem, index: number) => {
       canvasInstance.value?.switchCanvasModel(CanvasModel.Crop)
     } else if (index === 0) {
       canvasInstance.value?.switchCanvasModel(CanvasModel.Preview)
+    } else if (index === 2) {
+      canvasInstance.value?.switchCanvasModel(CanvasModel.Styled)
     }
     // else if (index === 3) {
     //   canvasInstance.value?.switchCanvasModel(CanvasModel.Paint)
@@ -299,9 +300,10 @@ const canvasInstance = shallowRef<CanvasImageManipulator | null>(null)
 // })
 
 onMounted(() => {
+  const imagePath = new URL('./237-300x300.jpg', import.meta.url).href;
   canvasInstance.value = new CanvasImageManipulator('canvas')
-  // canvasInstance.value?.loadImage('./hjNvQge.jpeg');
-  canvasInstance.value?.loadImage('https://picsum.photos/id/237/300/300');
+  canvasInstance.value?.loadImage(imagePath);
+  // canvasInstance.value?.loadImage('https://picsum.photos/id/237/300/300');
 
   // setTimeout(() => {
   //   canvasInstance.value?.loadImage('./hjNvQge.jpeg');
@@ -313,7 +315,7 @@ const scale = computed(() => {
 })
 
 const handleEndCrop = () => {
-  canvasInstance.value?.reversal()
+  // canvasInstance.value?.reversal()
 }
 
 const handleClickSavaImage = () => {
@@ -412,9 +414,9 @@ const handleDragRange = (event: InputEvent) => {
             class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px">
             <div class="flex font-size-14px mb-20px" v-for="(item, idx) in colorOption" :key="idx">
               <div class="mr10px">{{ item.title }}</div>
-              <input @input="(e) => item.handle && item.handle(e, item)" class="w-100% flex-1" type="range"
-                :min="item.min" :max="item.max" v-model="item.value" step="1">
-              <div class="ml10px w-40px">{{ item.value }}</div>
+              <input @input="handleInputRange" class="w-100% flex-1" type="range" :min="item.min" :max="item.max"
+                v-model="imageStyle[item.key]" step="1">
+              <div class="ml10px w-40px">{{ imageStyle[item.key] }}</div>
             </div>
 
           </div>

@@ -1,4 +1,4 @@
-import { CropRect, Image, MouseInCropModule } from './graphs/index'
+import { CropRect, Image, ImageStyleKey, MouseInCropModule } from './graphs/index'
 import { getCropReferenceLine, getCropDot, getCropLine, checkInPath } from './utils';
 
 
@@ -6,6 +6,8 @@ export enum CanvasModel {
   Preview = 'Preview',
   Crop = 'crop',
   Draw = 'draw',
+  Styled = 'styled',
+  Filter = 'filter',
   Text = 'Text',
 }
 
@@ -39,35 +41,6 @@ export class CanvasImageManipulator {
   cropRect: CropRect
 
   ro: ResizeObserver
-
-  // /**
-  //   * @description: 当前的坐标点
-  //   */
-  // private originX: number = 0;
-  // private originY: number = 0;
-
-
-  // private sourceX: number = 0;
-  // private sourceY: number = 0;
-  // private sourceWidth: number = 0;
-  // private sourceHeight: number = 0;
-
-  // private canvasOriginalWidth: number = 0;
-  // private canvasOriginalHeight: number = 0;
-
-
-  // private isEndCrop: boolean = false;
-
-
-  // private flip: 'normal' | 'horizontal' | 'vertical' = 'normal'
-
-  // /**
-  //   * @description: 缩放后的宽度高度
-  //   */
-  // private scaleWidth: number = 0;
-  // private scaleHeight: number = 0;
-
-
   // private lineX = 0
   // private lineY = 0
   // private lineWidth = 5
@@ -86,16 +59,6 @@ export class CanvasImageManipulator {
   //   X: 150,
   //   y: 150
   // }
-
-
-  // private cropping: boolean = false;
-  // private isResizing: boolean = false;
-  // private resizeEdge: string | null = null;
-
-  // 绘制线条
-  // private isDrawLine = false
-
-
   constructor(canvasId: string) {
     this.dpi = window.devicePixelRatio || 1;
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -138,150 +101,39 @@ export class CanvasImageManipulator {
       this.draw()
     };
   }
-  public reversal(flipType: 'normal' | 'horizontal' | 'vertical' = 'horizontal') {
-    // this.flip = flipType
-    // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    // this.ctx.save();
-    // this.ctx.scale(-1, 1);
-    // this.originX = -this.canvas.width + this.originX;
-    // this.draw()
-    // this.ctx.restore()
-  }
   public saveImage() {
+    var img = document.createElement('img');
+    img.crossOrigin = "anonymous";
+    img.src = this.image.imageElement.src
 
-    // var img = new Image()
-    // img.crossOrigin = "anonymous";
-    // img.src = this.image.src
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = this.image.width;
+      canvas.height = this.image.height;
 
-    // img.onload = () => {
-    //   const canvas = document.createElement('canvas');
-    //   const width = this.sourceWidth;
-    //   const height = this.sourceHeight;
-    //   canvas.width = width;
-    //   canvas.height = height;
-
-    //   const ctx = canvas.getContext('2d');
-    //   ctx?.drawImage(this.image, this.sourceX, this.sourceY, width, height, 0, 0, width, height);
-    //   const imageName = 'cropped-image.png';
-    //   canvas.toBlob((blob) => {
-    //     if (blob) {
-    //       // const editedFile = new File([blob], imageName, { type: blob.type });
-    //       const objectUrl = URL.createObjectURL(blob);
-    //       const linkElement = document.createElement('a');
-    //       linkElement.download = `${imageName}`;
-    //       linkElement.href = objectUrl;
-    //       linkElement.click();
-    //       URL.revokeObjectURL(objectUrl);
-    //     }
-    //   }, 'image/png');
-    // }
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, this.image.sx, this.image.sy, this.image.sw, this.image.sh, 0, 0, this.image.width, this.image.height);
+      const imageName = `cropped-image-${new Date().getTime()}.png`;
+      canvas.toBlob((blob) => {
+        if (blob) {
+          // const editedFile = new File([blob], imageName, { type: blob.type });
+          const objectUrl = URL.createObjectURL(blob);
+          const linkElement = document.createElement('a');
+          linkElement.download = `${imageName}`;
+          linkElement.href = objectUrl;
+          linkElement.click();
+          URL.revokeObjectURL(objectUrl);
+        }
+      }, 'image/png');
+    }
   }
   public drawLine() {
     // this.dragging = false
     // this.isDrawLine = true
   }
-  public changeLuminance(value: number) {
-    // const data = this.ctx.getImageData(this.originX * this.dpi, this.originY * this.dpi, this.scaleWidth * this.dpi, this.scaleHeight * this.dpi)
-
-    // const luminance = (imgData: ImageData, value: number) => {
-    //   const data = imgData.data
-    //   for (let i = 0; i < data.length; i += 4) {
-    //     const hsv = this.rgb2hsv([data[i], data[i + 1], data[i + 2]])
-    //     hsv[2] *= (1 + value)
-    //     const rgb = this.hsv2rgb([...hsv])
-    //     data[i] = rgb[0];
-    //     data[i + 1] = rgb[1];
-    //     data[i + 2] = rgb[2];
-    //   }
-    //   return imgData
-    // }
-    // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    // this.ctx.putImageData(luminance(data, -0.5), this.originX * this.dpi, this.originY * this.dpi, 0, 0, this.scaleWidth * this.dpi, this.scaleHeight * this.dpi)
-  }
-
-  private hsv2rgb(hsv: number[]) {
-    let _l = hsv[0];
-    let _m = hsv[1];
-    let _n = hsv[2];
-    let newR = 0;
-    let newG = 0;
-    let newB = 0;
-    if (_m === 0) {
-      _l = _m = _n = Math.round(255 * _n / 100);
-      newR = _l;
-      newG = _m;
-      newB = _n;
-    } else {
-      _m = _m / 100;
-      _n = _n / 100;
-      let p = Math.floor(_l / 60) % 6;
-      let f = _l / 60 - p;
-      let a = _n * (1 - _m);
-      let b = _n * (1 - _m * f);
-      let c = _n * (1 - _m * (1 - f));
-      switch (p) {
-        case 0:
-          newR = _n; newG = c; newB = a;
-          break;
-        case 1:
-          newR = b; newG = _n; newB = a;
-          break;
-        case 2:
-          newR = a; newG = _n; newB = c;
-          break;
-        case 3:
-          newR = a; newG = b; newB = _n;
-          break;
-        case 4:
-          newR = c; newG = a; newB = _n;
-          break;
-        case 5:
-          newR = _n; newG = a; newB = b;
-          break;
-      }
-      newR = Math.round(255 * newR);
-      newG = Math.round(255 * newG);
-      newB = Math.round(255 * newB);
-    }
-    return [newR, newG, newB]
-  }
-  private rgb2hsv(arr: number[]) {
-    let rr;
-    let gg;
-    let bb;
-    let r = arr[0] / 255;
-    let g = arr[1] / 255;
-    let b = arr[2] / 255;
-    let h = 0;
-    let s = 0;
-    let v = Math.max(r, g, b);
-    let diff = v - Math.min(r, g, b);
-    let diffc = function (c: number) {
-      return (v - c) / 6 / diff + 1 / 2;
-    };
-
-    if (diff === 0) {
-      h = s = 0;
-    } else {
-      s = diff / v;
-      rr = diffc(r);
-      gg = diffc(g);
-      bb = diffc(b);
-
-      if (r === v) {
-        h = bb - gg;
-      } else if (g === v) {
-        h = (1 / 3) + rr - bb;
-      } else if (b === v) {
-        h = (2 / 3) + gg - rr;
-      }
-      if (h < 0) {
-        h += 1;
-      } else if (h > 1) {
-        h -= 1;
-      }
-    }
-    return [Math.round(h * 360), Math.round(s * 100), Math.round(v * 100)]
+  public changeImageStyled(data: Record<ImageStyleKey, number>) {
+    this.image.styleSettings.brightness = data.brightness / 100
+    this.draw()
   }
   rotation(deg: number) {
     this.image.angle = deg
@@ -750,6 +602,48 @@ export class CanvasImageManipulator {
     this.ctx.rotate(this.image.angle * Math.PI / 180);
     // 渲染
     this.ctx.drawImage(this.image.imageElement, this.image.sx, this.image.sy, this.image.sw, this.image.sh, -this.image.width / 2, -this.image.height / 2, this.image.width, this.image.height);
+
+
+
+    if (this.canvasModel === CanvasModel.Styled) {
+      const { brightness, contrast, exposure, saturation } = this.image.styleSettings
+      const imageData = this.ctx.getImageData(this.image.x * this.dpi, this.image.y * this.dpi, this.image.width * this.dpi, this.image.height * this.dpi)
+
+      // 遍历每个像素，调整数值
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        let r = imageData.data[i];
+        let g = imageData.data[i + 1];
+        let b = imageData.data[i + 2];
+
+        // 亮度
+        r = Math.min(r * (1 + brightness), 255);
+        g = Math.min(g * (1 + brightness), 255);
+        b = Math.min(b * (1 + brightness), 255);
+
+        // 对比度
+        const avg = (r + g + b) / 3;
+        r = Math.min(Math.max(((r - avg) * contrast) + avg + 128 * (contrast - 1), 0), 255);
+        g = Math.min(Math.max(((g - avg) * contrast) + avg + 128 * (contrast - 1), 0), 255);
+        b = Math.min(Math.max(((b - avg) * contrast) + avg + 128 * (contrast - 1), 0), 255);
+
+        // 曝光
+        r = Math.min(r + exposure, 255);
+        g = Math.min(g + exposure, 255);
+        b = Math.min(b + exposure, 255);
+
+        // 饱和度
+        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+        r = r * saturation + gray * (1 - saturation);
+        g = g * saturation + gray * (1 - saturation);
+        b = b * saturation + gray * (1 - saturation);
+
+        imageData.data[i] = r;
+        imageData.data[i + 1] = g;
+        imageData.data[i + 2] = b;
+      }
+      this.ctx.putImageData(imageData, this.image.x, this.image.y)
+    }
+
     this.ctx.restore()
   }
 
