@@ -345,6 +345,30 @@ const handleDragRange = (event: InputEvent) => {
   // canvasInstance.value?.changeLuminance(Number((event.target as HTMLInputElement).value))
   canvasInstance.value?.rotation(Number((event.target as HTMLInputElement).value))
 }
+
+
+/** FPS*/
+const fps = ref(0);
+
+let startTime = performance.now();
+let frameCount = 0;
+let lastTimestamp = 0;
+
+function updateFps(timestamp: DOMHighResTimeStamp) {
+  frameCount++;
+  if (timestamp - lastTimestamp >= 10) {
+    const elapsed = timestamp - startTime;
+    fps.value = Math.round(1000 * frameCount / elapsed);
+    frameCount = 0;
+    startTime = timestamp;
+  }
+  lastTimestamp = timestamp;
+  requestAnimationFrame(updateFps);
+}
+
+onMounted(() => {
+  requestAnimationFrame(updateFps);
+});
 </script>
 
 <template>
@@ -367,7 +391,8 @@ const handleDragRange = (event: InputEvent) => {
       </div>
       <div flex font-size="22px" class="bar" pos-relative>
       </div>
-      <div class="right p-r-3">
+      <div class="right p-r-3 flex gap-10px items-center">
+        <div>Current FPS: {{ fps }}</div>
         <div btn @click="handleClickSavaImage">保存</div>
       </div>
     </div>
