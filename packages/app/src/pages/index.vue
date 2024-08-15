@@ -253,11 +253,11 @@ const handleChangeIndex = (item: BarItem, index: number) => {
 
 
   setTimeout(() => {
-    const width = document.getElementById('canvas')?.parentElement?.offsetWidth as number
-    const height = document.getElementById('canvas')?.parentElement?.offsetHeight as number
-    // console.log(width, height, document.getElementById('canvas')?.parentElement?.clientWidth);
+    // const width = document.getElementById('canvas')?.parentElement?.offsetWidth as number
+    // const height = document.getElementById('canvas')?.parentElement?.offsetHeight as number
+    // // console.log(width, height, document.getElementById('canvas')?.parentElement?.clientWidth);
 
-    canvasInstance.value?.handleViewportResize(width, height)
+    // canvasInstance.value?.handleViewportResize(width, height)
 
 
     if (index === 1) {
@@ -388,7 +388,8 @@ const handleDragRange = (event: InputEvent) => {
         <!-- tool -->
         <!-- transition-transform duration-350 -->
         <div class="p12px h-100% w-280px bg-#292c31 border-l-1  border-black border-solid pos-absolute top-0 z-1"
-          :class="[currentBarIndex !== 0 ? 'left-60px' : '-translate-x-100%']">
+          :class="['left-60px']">
+          <!-- currentBarIndex !== 0 ?  : '-translate-x-100%'-->
           <div class="font-size-16p mb-12px">{{ barOption[currentBarIndex].title }}</div>
           <!-- crop -->
           <div v-if="currentBarIndex === 1"
@@ -474,9 +475,9 @@ const handleDragRange = (event: InputEvent) => {
           </div>
         </div>
       </div>
-      <!-- transition-left duration-350 -->
+      <!-- transition-left duration-350 currentBarIndex === 0 ? 'left-60px w-[calc(100%-60px)]' :-->
       <div class="h-100% flex-auto bg-[#202020] pos-absolute top-0 box-border"
-        :class="[currentBarIndex === 0 ? 'left-60px w-[calc(100%-60px)]' : 'left-340px w-[calc(100%-340px)]']">
+        :class="['left-340px w-[calc(100%-340px)]']">
         <canvas id="canvas"></canvas>
       </div>
     </div>

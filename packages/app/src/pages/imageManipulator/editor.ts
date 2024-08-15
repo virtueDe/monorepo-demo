@@ -1,5 +1,5 @@
 import { CropRect, Image, ImageStyleKey, MouseInCropModule } from './graphs/index'
-import { getCropReferenceLine, getCropDot, getCropLine, checkInPath } from './utils';
+import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform } from './utils';
 
 
 export enum CanvasModel {
@@ -132,7 +132,10 @@ export class CanvasImageManipulator {
     // this.isDrawLine = true
   }
   public changeImageStyled(data: Record<ImageStyleKey, number>) {
-    this.image.styleSettings.brightness = data.brightness / 100
+    this.image.styleSettings.brightness = rangeTransform(-100, 100, -0.8, 1)(data.brightness)
+    this.image.styleSettings.contrast = rangeTransform(-100, 100, 0, 2)(data.contrast)
+    this.image.styleSettings.exposure = rangeTransform(-100, 100, -100, 100)(data.exposure)
+    this.image.styleSettings.saturation = rangeTransform(-100, 100, 0, 2)(data.saturation)
     this.draw()
   }
   rotation(deg: number) {
@@ -604,8 +607,12 @@ export class CanvasImageManipulator {
     this.ctx.drawImage(this.image.imageElement, this.image.sx, this.image.sy, this.image.sw, this.image.sh, -this.image.width / 2, -this.image.height / 2, this.image.width, this.image.height);
 
 
+    if (this.canvasModel === CanvasModel.Styled
+      &&
+      this.image.isStyleSettings()
+    ) {
+      console.log('渲染图片效果');
 
-    if (this.canvasModel === CanvasModel.Styled) {
       const { brightness, contrast, exposure, saturation } = this.image.styleSettings
       const imageData = this.ctx.getImageData(this.image.x * this.dpi, this.image.y * this.dpi, this.image.width * this.dpi, this.image.height * this.dpi)
 
@@ -641,7 +648,15 @@ export class CanvasImageManipulator {
         imageData.data[i + 1] = g;
         imageData.data[i + 2] = b;
       }
-      this.ctx.putImageData(imageData, this.image.x, this.image.y)
+      this.image.cacheStyleSettings = {
+        ...this.image.styleSettings,
+        width: this.image.width,
+        height: this.image.height,
+        imageData: imageData,
+      }
+    }
+    if (this.image.cacheStyleSettings.imageData) {
+      this.ctx.putImageData(this.image.cacheStyleSettings.imageData, this.image.x * this.dpi, this.image.y * this.dpi)
     }
 
     this.ctx.restore()
