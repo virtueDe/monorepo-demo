@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends any, O extends any">
-import { ImageStyleKey } from './imageManipulator/graphs';
+import { FilterType, ImageStyleKey } from './imageManipulator/graphs';
 import { CanvasImageManipulator } from './imageManipulator/index'
 import { CanvasModel } from './imageManipulator/index'
 
@@ -202,21 +202,49 @@ const handleClickPaintColor = (item: string) => {
 
 const filterTypeList = ref([
   {
+    title: '原图',
+    value: FilterType.Normal
+  },
+  {
     title: '黑白',
+    value: FilterType.Grayscale
   },
   {
-    title: '电影',
+    title: '怀旧',
+    value: FilterType.Sepia
   },
   {
-    title: '动漫',
+    title: '反色',
+    value: FilterType.Invert
   },
   {
-    title: '人物',
-  }
+    title: '荧光',
+    value: FilterType.fluorescence
+  },
+  {
+    title: '阈值',
+    value: FilterType.threshold
+  },
+  {
+    title: '浮雕',
+    value: FilterType.Emboss
+  },
+  // {
+  //   title: '锐化',
+  //   value: FilterType.Sharpen
+  // },
+  // {
+  //   title: '像素',
+  //   value: FilterType.Pixelate
+  // },
 ])
 
-const filterTypeValue = ref('')
+const filterTypeValue = ref<FilterType>(FilterType.Normal)
 
+const handleClickFilter = (item: FilterType) => {
+  filterTypeValue.value = item
+  canvasInstance.value?.changeFilter(filterTypeValue.value)
+}
 
 const fontStyleList = ref([
   {
@@ -266,6 +294,8 @@ const handleChangeIndex = (item: BarItem, index: number) => {
       canvasInstance.value?.switchCanvasModel(CanvasModel.Preview)
     } else if (index === 2) {
       canvasInstance.value?.switchCanvasModel(CanvasModel.Styled)
+    } else if (index === 4) {
+      canvasInstance.value?.switchCanvasModel(CanvasModel.Filter)
     }
     // else if (index === 3) {
     //   canvasInstance.value?.switchCanvasModel(CanvasModel.Paint)
@@ -465,9 +495,9 @@ onMounted(() => {
             </div>
           </div>
           <div v-if="currentBarIndex === 4"
-            class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px flex flex-gap-8px flex-wrap">
-            <div v-for="(item, idx) in filterTypeList" :key="idx" @click="filterTypeValue = item.title"
-              :class="[item.title === filterTypeValue ? 'border-1 border-solid border-primary shadow-md shadow-blue-500/40' : '']"
+            class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px flex flex-gap-8px flex-wrap overflow-y-auto h-90%">
+            <div v-for="(item, idx) in filterTypeList" :key="idx" @click="handleClickFilter(item.value)"
+              :class="[item.value === filterTypeValue ? 'border-1 border-solid border-primary shadow-md shadow-blue-500/40' : '']"
               class="flex-auto bg-[#383A3E] rounded-2px font-size-12px color-[#868686] cup h-200px w-100px flex items-center justify-center">
               {{
                 item.title

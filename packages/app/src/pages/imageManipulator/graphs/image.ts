@@ -1,13 +1,55 @@
 
 export type ImageStyleKey = 'brightness' | 'contrast' | 'exposure' | 'saturation';
 
+export enum FilterType {
+  /**
+    * 无效果
+    */
+  Normal = 'normal',
+  /**
+    * 灰度滤镜 - 将彩色图像转换为黑白图像。
+    */
+  Grayscale = 'grayscale',
+  /**
+   * 怀旧滤镜 - 为图像添加一种复古或怀旧的外观。
+   */
+  Sepia = 'sepia',
+  /**
+   * 反色滤镜 - 将图像的颜色完全反转。
+   */
+  Invert = 'invert',
+  /**
+   * 锐化滤镜 - 增强图像细节，使图像更清晰。
+   */
+  Sharpen = 'sharpen',
+  /**
+   * 像素化滤镜 - 将图像分割成较大的像素块。
+   */
+  Pixelate = 'pixelate',
+  /**
+   * 浮雕滤镜 - 创建一种浮雕或凸起的效果。
+   */
+  Emboss = 'emboss',
+  /**
+   * 荧光滤镜 - 创建一种浮雕或凸起的效果。
+   */
+  fluorescence = 'Fluorescence',
+  /**
+   * 阈值 - 创建一种浮雕或凸起的效果。
+   */
+  threshold = 'Threshold',
+}
+
+
 type ImageEffectValues = Record<ImageStyleKey, number>;
 // 扩展类型
 type ExtendedImageEffectValues = ImageEffectValues & {
   width: number;
   height: number;
   imageData: ImageData | null;
+  filterType: FilterType
 };
+
 export class Image {
   imageElement: HTMLImageElement = document.createElement('img');
   margin: number = 20;
@@ -35,17 +77,21 @@ export class Image {
   };
 
   cacheStyleSettings!: ExtendedImageEffectValues;
+
+  filterType: FilterType = FilterType.Normal
+
   constructor() {
     this.cacheStyleSettings = {
       ...this.styleSettings,
       width: this.width,
       height: this.height,
+      filterType: this.filterType,
       imageData: null,
     }
   }
   isStyleSettings() {
-    const settingsObj = { width: this.width, height: this.height, ...this.styleSettings }
-    const flag = Object.keys({ width: this.width, height: this.height, ...this.styleSettings }).some(key => {
+    const settingsObj = { width: this.width, height: this.height, filterType: this.filterType, ...this.styleSettings }
+    const flag = Object.keys(settingsObj).some(key => {
       return settingsObj[key as ImageStyleKey] !== this.cacheStyleSettings[key as ImageStyleKey]
     })
     return flag

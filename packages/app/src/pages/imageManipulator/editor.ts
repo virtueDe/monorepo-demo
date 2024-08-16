@@ -1,5 +1,5 @@
-import { CropRect, Image, ImageStyleKey, MouseInCropModule } from './graphs/index'
-import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform } from './utils';
+import { CropRect, FilterType, Image, ImageStyleKey, MouseInCropModule } from './graphs/index'
+import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform, getNextPixel, getNextRowPixel, getPreviousPixel, isLastRow, isLastPixelInRow, getPreviousRowPixel, applyConvolution } from './utils';
 
 
 export enum CanvasModel {
@@ -136,6 +136,10 @@ export class CanvasImageManipulator {
     this.image.styleSettings.contrast = rangeTransform(-100, 100, 0, 2)(data.contrast)
     this.image.styleSettings.exposure = rangeTransform(-100, 100, -100, 100)(data.exposure)
     this.image.styleSettings.saturation = rangeTransform(-100, 100, 0, 2)(data.saturation)
+    this.draw()
+  }
+  changeFilter(value: FilterType) {
+    this.image.filterType = value
     this.draw()
   }
   rotation(deg: number) {
@@ -606,21 +610,30 @@ export class CanvasImageManipulator {
     // 渲染
     this.ctx.drawImage(this.image.imageElement, this.image.sx, this.image.sy, this.image.sw, this.image.sh, -this.image.width / 2, -this.image.height / 2, this.image.width, this.image.height);
 
-
-    if (this.canvasModel === CanvasModel.Styled
+    if ((this.canvasModel === CanvasModel.Styled || this.canvasModel === CanvasModel.Filter)
       &&
       this.image.isStyleSettings()
     ) {
-      console.log('渲染图片效果');
-
       const { brightness, contrast, exposure, saturation } = this.image.styleSettings
       const imageData = this.ctx.getImageData(this.image.x * this.dpi, this.image.y * this.dpi, this.image.width * this.dpi, this.image.height * this.dpi)
 
+      console.time();
+
       // 遍历每个像素，调整数值
       for (let i = 0; i < imageData.data.length; i += 4) {
+
         let r = imageData.data[i];
         let g = imageData.data[i + 1];
         let b = imageData.data[i + 2];
+        let a = imageData.data[i + 3];
+
+        const nextPixel = getNextPixel(imageData, i);
+        const previousPixel = getPreviousPixel(imageData, i);
+        const nextRowPixel = getNextRowPixel(imageData, i, imageData.width);
+        const PreviousRowPixel = getPreviousRowPixel(imageData, i, imageData.width);
+        const isLastRowPixel = isLastRow(i, imageData.width, imageData.height);
+        const isCurRowLastPixel = isLastPixelInRow(i, imageData.width);
+        // console.log({ r, g, b, a }, nextPixel, previousPixel, nextRowPixel, isLastRowPixel, isCurRowLastPixel);
 
         // 亮度
         r = Math.min(r * (1 + brightness), 255);
@@ -644,17 +657,92 @@ export class CanvasImageManipulator {
         g = g * saturation + gray * (1 - saturation);
         b = b * saturation + gray * (1 - saturation);
 
+        // console.log(this.image.filterType);
+        // 根据滤镜类型应用滤镜
+        switch (this.image.filterType) {
+          case FilterType.Normal:
+            break;
+          case FilterType.Grayscale:
+            const gray = 0.21 * r + 0.72 * g + 0.07 * b;
+            r = gray;
+            g = gray;
+            b = gray;
+            break;
+          case FilterType.Sepia:
+            r = Math.min(255, 0.393 * r + 0.769 * g + 0.189 * b);
+            g = Math.min(255, 0.349 * r + 0.686 * g + 0.168 * b);
+            b = Math.min(255, 0.272 * r + 0.534 * g + 0.131 * b);
+            break;
+          case FilterType.Invert:
+            r = 255 - r;
+            g = 255 - g;
+            b = 255 - b;
+            break;
+          case FilterType.Sharpen:
+            r = 255 - r;
+            g = 255 - g;
+            b = 255 - b;
+            break;
+          case FilterType.fluorescence:
+            r = r * 128 / (g + b + 1);
+            g = g * 128 / (r + b + 1)
+            b = b * 128 / (g + r + 1)
+            break;
+          case FilterType.threshold:
+            var average = (r + g + a) / 3;
+            r = g = b = average > 150 ? 255 : 0;
+            break;
+          case FilterType.Emboss:
+            if (isLastRowPixel) {
+              // 最后一行取上一行的当前点
+              r = PreviousRowPixel!.r;
+              g = PreviousRowPixel!.g;
+              b = PreviousRowPixel!.b;
+            } else {
+              // 是当前行的最后一个点就取前一个点，否则就取下一行的当前点
+              if (isCurRowLastPixel) {
+                r = previousPixel!.r;
+                g = previousPixel!.g;
+                b = previousPixel!.b;
+              } else {
+                r = 255 / 2 + 2 * r - nextPixel!.r - nextRowPixel!.r;
+                g = 255 / 2 + 2 * g - nextPixel!.g - nextRowPixel!.g;
+                b = 255 / 2 + 2 * b - nextPixel!.b - nextRowPixel!.b;
+              }
+            }
+            break;
+          // case FilterType.Sharpen:
+          //   // 应用锐化滤镜
+          //   // 定义锐化滤镜的卷积核
+          //   const SHARPEN_KERNEL = [
+          //     [1, 1, 1],
+          //     [1, -7, 1],
+          //     [1, 1, 1]
+          //   ];
+          //   const { r: sharpenR, g: sharpenG, b: sharpenB } = applyConvolution(imageData, i, imageData.width, imageData.height, SHARPEN_KERNEL);
+          //   r = sharpenR;
+          //   g = sharpenG;
+          //   b = sharpenB;
+          //   break;
+          default:
+            console.log('Unsupported filter type');
+        }
+
         imageData.data[i] = r;
         imageData.data[i + 1] = g;
         imageData.data[i + 2] = b;
+        imageData.data[i + 3] = a;
       }
       this.image.cacheStyleSettings = {
         ...this.image.styleSettings,
         width: this.image.width,
         height: this.image.height,
+        filterType: this.image.filterType,
         imageData: imageData,
       }
+      console.timeEnd();
     }
+
     if (this.image.cacheStyleSettings.imageData) {
       this.ctx.putImageData(this.image.cacheStyleSettings.imageData, this.image.x * this.dpi, this.image.y * this.dpi)
     }
