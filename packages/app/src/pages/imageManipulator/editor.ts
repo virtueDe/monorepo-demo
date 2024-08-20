@@ -610,10 +610,16 @@ export class CanvasImageManipulator {
     // 渲染
     this.ctx.drawImage(this.image.imageElement, this.image.sx, this.image.sy, this.image.sw, this.image.sh, -this.image.width / 2, -this.image.height / 2, this.image.width, this.image.height);
 
-    if ((this.canvasModel === CanvasModel.Styled || this.canvasModel === CanvasModel.Filter)
-      &&
+    // TODO: 优化渲染触发逻辑
+    // (this.canvasModel === CanvasModel.Styled || this.canvasModel === CanvasModel.Filter)
+    // &&
+    if (
       this.image.isStyleSettings()
     ) {
+      console.log(this.image.width);
+      console.log(this.image);
+
+
       const { brightness, contrast, exposure, saturation } = this.image.styleSettings
       const imageData = this.ctx.getImageData(this.image.x * this.dpi, this.image.y * this.dpi, this.image.width * this.dpi, this.image.height * this.dpi)
 

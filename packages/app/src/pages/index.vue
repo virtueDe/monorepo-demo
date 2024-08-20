@@ -166,8 +166,8 @@ const paintDrawType = ref([
     }
   },
   {
-    icon: 'i-carbon:pen-fountain',
-    title: '钢笔',
+    icon: 'i-carbon:erase',
+    title: '橡皮擦',
     value: 1,
     handle: () => {
     }
