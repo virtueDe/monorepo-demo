@@ -1,7 +1,5 @@
 <script setup lang="ts" generic="T extends any, O extends any">
-import { FilterType, ImageStyleKey } from './imageManipulator/graphs';
-import { CanvasImageManipulator } from './imageManipulator/index'
-import { CanvasModel } from './imageManipulator/index'
+import { CanvasImageManipulator, CanvasModel, FilterType, ImageStyleKey, DrawType } from './imageManipulator/index'
 
 // import { sum } from "@v50/edit-utils";
 import type { ComponentPublicInstance } from 'vue';
@@ -161,21 +159,20 @@ const paintDrawType = ref([
   {
     icon: 'i-carbon:paint-brush-alt',
     title: '铅笔',
-    value: 0,
-    handle: () => {
-    }
+    value: DrawType.Line,
   },
   {
     icon: 'i-carbon:erase',
     title: '橡皮擦',
-    value: 1,
-    handle: () => {
-    }
+    value: DrawType.Eraser,
   },
 ])
-const paintDrawTypeValue = ref(0)
+const paintDrawTypeValue = ref<DrawType>(DrawType.Line)
+
+const drawLineWidth = ref<number>(12)
 
 const paintColor = ref([
+  'black',
   'red',
   'aqua',
   'yellow',
@@ -185,7 +182,6 @@ const paintColor = ref([
   'orange',
   'brown',
   'gray',
-  'black',
   'white',
   'blue',
   'teal',
@@ -194,10 +190,27 @@ const paintColor = ref([
   'fuchsia'
 ])
 
+const handleClickDrawType = (item: { icon: string, title: string, value: DrawType }) => {
+  paintDrawTypeValue.value = item.value
+  handleDrawLineChange()
+}
+
 const paintColorValue = ref('red')
 
 const handleClickPaintColor = (item: string) => {
   paintColorValue.value = item
+  handleDrawLineChange()
+}
+
+const handleDrawLineChange = () => {
+  console.log(drawLineWidth);
+  console.log(paintColorValue);
+  console.log(paintDrawTypeValue);
+  canvasInstance.value?.setLineOptions({
+    lineWidth: drawLineWidth.value,
+    strokeStyle: paintColorValue.value,
+    drawType: paintDrawTypeValue.value,
+  })
 }
 
 const filterTypeList = ref([
@@ -296,12 +309,11 @@ const handleChangeIndex = (item: BarItem, index: number) => {
       canvasInstance.value?.switchCanvasModel(CanvasModel.Styled)
     } else if (index === 4) {
       canvasInstance.value?.switchCanvasModel(CanvasModel.Filter)
+    } else if (index === 3) {
+      canvasInstance.value?.switchCanvasModel(CanvasModel.DrawLine)
+    } else if (index === 5) {
+      canvasInstance.value?.switchCanvasModel(CanvasModel.Text)
     }
-    // else if (index === 3) {
-    //   canvasInstance.value?.switchCanvasModel(CanvasModel.Paint)
-    // }else if (index === 4) {
-    //   canvasInstance.value?.switchCanvasModel(CanvasModel.Filter)
-    // }
   })
 
 }
@@ -477,22 +489,32 @@ onMounted(() => {
 
           </div>
           <div v-if="currentBarIndex === 3">
-            <div class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px flex flex-gap-8px">
-              <div class="flex-auto cup rounded-8px h-36px flex items-center justify-center bg-[#383A3E]"
-                v-for="(item, idx) in paintDrawType" :key="idx"
-                :class="[item.value === paintDrawTypeValue ? 'bg-primary' : '']"
-                @click="paintDrawTypeValue = item.value" :title="item.title">
-                <div :class="[item.icon]"></div>
+            <div class="rounded-12px border-1 border-[#34373A] hover:border-[#424549]">
+              <div class="p12px">
+                <div class="text-left font-size-12px">画笔宽度</div>
+                <div class="flex mt12px">
+                  <input @input="handleDrawLineChange" class="w-100% cup" type="range" min="1" max="32"
+                    v-model="drawLineWidth" step="1">
+                  <div class="ml10px w-30px">{{ drawLineWidth }}</div>
+                </div>
+              </div>
+              <div class="p-12px flex flex-gap-8px">
+                <div class="flex-auto cup rounded-8px h-36px flex items-center justify-center bg-[#383A3E]"
+                  v-for="(item, idx) in paintDrawType" :key="idx"
+                  :class="[item.value === paintDrawTypeValue ? 'bg-primary' : '']" @click="handleClickDrawType(item)"
+                  :title="item.title">
+                  <div :class="[item.icon]"></div>
+                </div>
+              </div>
+              <div class="p-12px flex flex-gap-9px flex-wrap">
+                <div v-for="(item, idx) in paintColor" :key="idx" class="w20px h20px cursor-pointer rounded-2px"
+                  :style="{ backgroundColor: item }"
+                  :class="[item === paintColorValue ? 'border-1 border-solid border-primary shadow-md shadow-blue-500/40' : '']"
+                  @click="handleClickPaintColor(item)">
+                </div>
               </div>
             </div>
-            <div
-              class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px flex flex-gap-9px flex-wrap">
-              <div v-for="(item, idx) in paintColor" :key="idx" class="w20px h20px cursor-pointer rounded-2px"
-                :style="{ backgroundColor: item }"
-                :class="[item === paintColorValue ? 'border-1 border-solid border-primary shadow-md shadow-blue-500/40' : '']"
-                @click="handleClickPaintColor(item)">
-              </div>
-            </div>
+
           </div>
           <div v-if="currentBarIndex === 4"
             class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px flex flex-gap-8px flex-wrap overflow-y-auto h-90%">
