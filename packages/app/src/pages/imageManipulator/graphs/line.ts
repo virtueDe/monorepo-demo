@@ -1,6 +1,7 @@
 
 
 export interface LineItem {
+  drawType: DrawType
   strokeStyle: string
   lineWidth: number
   data: { x: number, y: number }[]

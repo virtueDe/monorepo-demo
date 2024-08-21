@@ -203,9 +203,9 @@ const handleClickPaintColor = (item: string) => {
 }
 
 const handleDrawLineChange = () => {
-  console.log(drawLineWidth);
-  console.log(paintColorValue);
-  console.log(paintDrawTypeValue);
+  // console.log(drawLineWidth);
+  // console.log(paintColorValue);
+  // console.log(paintDrawTypeValue);
   canvasInstance.value?.setLineOptions({
     lineWidth: drawLineWidth.value,
     strokeStyle: paintColorValue.value,
