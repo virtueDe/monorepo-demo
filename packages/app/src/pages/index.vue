@@ -342,7 +342,7 @@ const canvasInstance = shallowRef<CanvasImageManipulator | null>(null)
 // })
 
 onMounted(() => {
-  const imagePath = new URL('./237-300x300.jpg', import.meta.url).href;
+  const imagePath = new URL('./hjNvQge.jpeg', import.meta.url).href;
   canvasInstance.value = new CanvasImageManipulator('canvas')
   canvasInstance.value?.loadImage(imagePath);
   // canvasInstance.value?.loadImage('https://picsum.photos/id/237/300/300');

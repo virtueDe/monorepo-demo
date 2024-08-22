@@ -313,6 +313,7 @@ export class CanvasImageManipulator {
       })
       if (this.line.drawType === DrawType.Eraser) {
         this.eraseCircle(this.line.lineStartX, this.line.lineStartY, this.line.lineWidth / 2)
+        // this.erase(this.line.lineStartX, this.line.lineStartY, this.line.lineWidth)
       }
     }
 
@@ -559,6 +560,12 @@ export class CanvasImageManipulator {
         }
         this.ctx.stroke();
       } else {
+
+        // for (let j = 1; j < lineItem.data.length; j++) {
+        //   const point = lineItem.data[j];
+        //   this.erase(point.x, point.y, lineItem.lineWidth)
+        // }
+
         // https://code.juejin.cn/pen/7349828056090935322 橡皮擦功能
         let p1 = lineItem.data[0]
         let p2 = {
@@ -577,8 +584,7 @@ export class CanvasImageManipulator {
           // 两点之间的距离
           var d = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
           //两点之间要画多少个圆才能看起来像条平滑直线，0.2 是平均每像素的距离 画0.2个圆，100像素的距离画20个圆足够
-          var num = d * 0.2;
-          //注意 这里圆点半径为15 - 25像素适应
+          var num = d > 20 ? d * 3 : d * 0.2;
           var x = p1.x;
           var y = p1.y; //第一个圆的位置
           var n = (p2.x - p1.x) / num; //每个圆心之间的间距
@@ -590,6 +596,7 @@ export class CanvasImageManipulator {
           }
           p1 = p2; //最后 将p2 赋给 p1
         }
+
       }
     }
 
@@ -602,6 +609,20 @@ export class CanvasImageManipulator {
     this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
     this.ctx.fill();
     this.ctx.closePath();
+    this.ctx.restore()
+  }
+  private erase(x: number, y: number, radius: number) {
+    this.ctx.save()
+    this.ctx.globalCompositeOperation = 'destination-out';
+
+    this.ctx.lineWidth = radius;
+    this.ctx.lineCap = 'round';
+    this.ctx.lineJoin = 'round';
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y);
+    this.ctx.lineTo(x, y);
+    this.ctx.stroke();
+
     this.ctx.restore()
   }
   private drawImage() {
