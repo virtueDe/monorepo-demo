@@ -1,4 +1,4 @@
-import { CropRect, DrawType, FilterType, Image, ImageStyleKey, Line, MouseInCropModule } from './graphs/index'
+import { CropRect, DrawType, FilterType, Image, ImageStyleKey, Line, MouseInCropModule, TextAttribute, TextGraphs } from './graphs/index'
 import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform, getNextPixel, getNextRowPixel, getPreviousPixel, isLastRow, isLastPixelInRow, getPreviousRowPixel, applyConvolution } from './utils';
 
 export enum CanvasModel {
@@ -39,15 +39,9 @@ export class CanvasImageManipulator {
   image: Image;
   cropRect: CropRect
   line: Line
+  text: TextGraphs
 
   ro: ResizeObserver
-  // private lineX = 0
-  // private lineY = 0
-  // private lineWidth = 5
-  // private
-
-  // private pathData: { x: number, y: number }[] = []
-
 
   // private textAttribute = {
   //   fontSize: 50,
@@ -81,6 +75,7 @@ export class CanvasImageManipulator {
     this.image = new Image();
     this.cropRect = new CropRect()
     this.line = new Line()
+    this.text = new TextGraphs()
 
     this.ro = new ResizeObserver(entries => {
       entries.forEach(entry => {
@@ -315,6 +310,8 @@ export class CanvasImageManipulator {
         this.eraseCircle(this.line.lineStartX, this.line.lineStartY, this.line.lineWidth / 2)
         // this.erase(this.line.lineStartX, this.line.lineStartY, this.line.lineWidth)
       }
+    } else if (this.canvasModel === CanvasModel.Text) {
+      console.log(mouseX, mouseY);
     }
 
     // console.log(this.cropRect.InCropModule);
@@ -432,6 +429,8 @@ export class CanvasImageManipulator {
         })
       } else if (this.canvasModel === CanvasModel.DrawLine) {
         cursor = this.line.cursor
+      } else if (this.canvasModel === CanvasModel.Text) {
+        cursor = this.text.cursor
       }
 
       this.canvas.style.cursor = cursor;
@@ -818,6 +817,9 @@ export class CanvasImageManipulator {
       case CanvasModel.DrawLine:
         this.initDrawLine()
         break
+      case CanvasModel.Text:
+        // this.initDrawLine()
+        break
       default:
         break
     }
@@ -837,6 +839,9 @@ export class CanvasImageManipulator {
     this.line.lineWidth = options.lineWidth
     this.line.strokeStyle = options.strokeStyle
     this.line.drawType = options.drawType
+  }
+  setTextAttribute(attribute: TextAttribute) {
+    this.text.textAttribute = { ...this.text.textAttribute, ...attribute }
   }
 }
 

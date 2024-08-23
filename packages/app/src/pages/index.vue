@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends any, O extends any">
-import { CanvasImageManipulator, CanvasModel, FilterType, ImageStyleKey, DrawType } from './imageManipulator/index'
+import { CanvasImageManipulator, CanvasModel, FilterType, ImageStyleKey, DrawType, FontWeight, FontStyle, FontUnderline, FontLineThrough } from './imageManipulator/index'
 
 // import { sum } from "@v50/edit-utils";
 import type { ComponentPublicInstance } from 'vue';
@@ -259,6 +259,32 @@ const handleClickFilter = (item: FilterType) => {
   canvasInstance.value?.changeFilter(filterTypeValue.value)
 }
 
+const fontSize = ref(14)
+const fontColor = ref('#000')
+
+watch(() => [fontSize.value, fontColor.value], () => {
+  setTextAttribute()
+})
+
+const handleClickTextStyle = (item: { title: string, icon: string, use: boolean }) => {
+  console.log(item);
+  item.use = !item.use
+  setTextAttribute()
+}
+
+const setTextAttribute = () => {
+  canvasInstance.value?.setTextAttribute({
+    fontFamily: 'sans-serif',
+    fontSize: fontSize.value,
+    fontColor: fontColor.value,
+
+    fontWeight: fontStyleList.value[0].use ? FontWeight.Bold : FontWeight.Normal,
+    fontStyle: fontStyleList.value[1].use ? FontStyle.Italic : FontStyle.Normal,
+    fontUnderline: fontStyleList.value[2].use ? FontUnderline.Underline : FontUnderline.Normal,
+    fontLineThrough: fontStyleList.value[3].use ? FontLineThrough.LineThrough : FontLineThrough.Normal,
+  })
+}
+
 const fontStyleList = ref([
   {
     title: '加粗',
@@ -281,6 +307,8 @@ const fontStyleList = ref([
     use: false
   }
 ])
+
+
 
 onMounted(() => {
   initActiveTranslateLeft(0)
@@ -342,7 +370,7 @@ const canvasInstance = shallowRef<CanvasImageManipulator | null>(null)
 // })
 
 onMounted(() => {
-  const imagePath = new URL('./hjNvQge.jpeg', import.meta.url).href;
+  const imagePath = new URL('./237-300x300.jpg', import.meta.url).href;
   canvasInstance.value = new CanvasImageManipulator('canvas')
   canvasInstance.value?.loadImage(imagePath);
   // canvasInstance.value?.loadImage('https://picsum.photos/id/237/300/300');
@@ -529,23 +557,17 @@ onMounted(() => {
           <div v-if="currentBarIndex === 5"
             class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px">
             <div class="flex font-size-14px mb-20px justify-center">
-              <div class="mr10px">字体大小</div>
-              <input type="number" value="14" list="defaultNumbers" min="2" max="200" step="1" class="w-100% flex-1">
-              <datalist id="defaultNumbers">
-                <option value="18"></option>
-                <option value="24"></option>
-                <option value="36"></option>
-                <option value="72"></option>
-              </datalist>
+              <div class="mr10px">文本大小</div>
+              <input type="Number" v-model="fontSize" min="12" max="64" class="w-100% flex-1 color-black pl6px">
             </div>
             <div class="flex font-size-14px mb-20px">
               <div class="mr10px">文本颜色</div>
-              <input class="w-100% flex-1" type="color" value="#fff">
+              <input class="w-100% flex-1" type="color" v-model="fontColor">
             </div>
             <div class="flex justify-between font-size-18px gap-10px">
               <div class="flex-1 cup bg-[#383A3E] flex items-center justify-center p6px rounded-5px"
                 v-for="(item, idx) in fontStyleList" :key="idx" :class="[item.use ? 'bg-primary' : '']"
-                @click="item.use = !item.use">
+                @click="handleClickTextStyle(item)">
                 <div :class="[item.icon]"></div>
               </div>
             </div>
