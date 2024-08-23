@@ -544,60 +544,63 @@ export class CanvasImageManipulator {
     this.ctx.save()
     for (let index = 0; index < this.line.lineData.length; index++) {
       const lineItem = this.line.lineData[index];
-      if (lineItem.drawType === DrawType.Line) {
-        this.ctx.strokeStyle = lineItem.strokeStyle;
-        this.ctx.lineWidth = lineItem.lineWidth;
-        this.ctx.lineCap = 'round';
-        this.ctx.lineJoin = 'round';
-        this.ctx.beginPath();
-        for (let j = 0; j < lineItem.data.length; j++) {
-          const point = lineItem.data[j];
-          if (j === 0) {
-            this.ctx.moveTo(point.x, point.y);
-          } else {
-            this.ctx.lineTo(point.x, point.y);
-          }
-        }
-        this.ctx.stroke();
-      } else {
-
-        // for (let j = 1; j < lineItem.data.length; j++) {
-        //   const point = lineItem.data[j];
-        //   this.erase(point.x, point.y, lineItem.lineWidth)
-        // }
-
-        // https://code.juejin.cn/pen/7349828056090935322 橡皮擦功能
-        let p1 = lineItem.data[0]
-        let p2 = {
-          x: 0,
-          y: 0
-        }
-        let k = 0
-        let b = 0
-
-        for (let j = 1; j < lineItem.data.length; j++) {
-          p2 = lineItem.data[j];
-          // p1 p2直线斜率
-          k = (p2.y - p1.y) / (p2.x - p1.x);
-          //y = kx + b 的 b
-          b = p1.y - k * p1.x;
-          // 两点之间的距离
-          var d = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-          //两点之间要画多少个圆才能看起来像条平滑直线，0.2 是平均每像素的距离 画0.2个圆，100像素的距离画20个圆足够
-          var num = d > 20 ? d * 3 : d * 0.2;
-          var x = p1.x;
-          var y = p1.y; //第一个圆的位置
-          var n = (p2.x - p1.x) / num; //每个圆心之间的间距
-          for (var i = 0; i < num; i++) {
-            //依次在这条直线上画 num 个圆
-            this.eraseCircle(x, y, lineItem.lineWidth / 2)
-            x += n;
-            y = k * x + b;
-          }
-          p1 = p2; //最后 将p2 赋给 p1
-        }
-
+      // if (lineItem.drawType === DrawType.Line) {
+      this.ctx.strokeStyle = lineItem.strokeStyle;
+      this.ctx.lineWidth = lineItem.lineWidth;
+      this.ctx.lineCap = 'round';
+      this.ctx.lineJoin = 'round';
+      if (lineItem.drawType === DrawType.Eraser) {
+        this.ctx.globalCompositeOperation = 'destination-out';
       }
+      this.ctx.beginPath();
+      for (let j = 0; j < lineItem.data.length; j++) {
+        const point = lineItem.data[j];
+        if (j === 0) {
+          this.ctx.moveTo(point.x, point.y);
+        } else {
+          this.ctx.lineTo(point.x, point.y);
+        }
+      }
+      this.ctx.stroke();
+      // } else {
+
+      // for (let j = 1; j < lineItem.data.length; j++) {
+      //   const point = lineItem.data[j];
+      //   this.erase(point.x, point.y, lineItem.lineWidth)
+      // }
+
+      // https://code.juejin.cn/pen/7349828056090935322 橡皮擦功能
+      // let p1 = lineItem.data[0]
+      // let p2 = {
+      //   x: 0,
+      //   y: 0
+      // }
+      // let k = 0
+      // let b = 0
+
+      // for (let j = 1; j < lineItem.data.length; j++) {
+      //   p2 = lineItem.data[j];
+      //   // p1 p2直线斜率
+      //   k = (p2.y - p1.y) / (p2.x - p1.x);
+      //   //y = kx + b 的 b
+      //   b = p1.y - k * p1.x;
+      //   // 两点之间的距离
+      //   var d = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+      //   //两点之间要画多少个圆才能看起来像条平滑直线，0.2 是平均每像素的距离 画0.2个圆，100像素的距离画20个圆足够
+      //   var num = d > 20 ? d * 3 : d * 0.2;
+      //   var x = p1.x;
+      //   var y = p1.y; //第一个圆的位置
+      //   var n = (p2.x - p1.x) / num; //每个圆心之间的间距
+      //   for (var i = 0; i < num; i++) {
+      //     //依次在这条直线上画 num 个圆
+      //     this.eraseCircle(x, y, lineItem.lineWidth / 2)
+      //     x += n;
+      //     y = k * x + b;
+      //   }
+      //   p1 = p2; //最后 将p2 赋给 p1
+      // }
+
+      // }
     }
 
     this.ctx.restore()
