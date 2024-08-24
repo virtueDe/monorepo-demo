@@ -1,3 +1,4 @@
+import { TextController } from './controller';
 import { CropRect, DrawType, FilterType, Image, ImageStyleKey, Line, MouseInCropModule, TextAttribute, TextGraphs } from './graphs/index'
 import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform, getNextPixel, getNextRowPixel, getPreviousPixel, isLastRow, isLastPixelInRow, getPreviousRowPixel, applyConvolution } from './utils';
 
@@ -40,6 +41,7 @@ export class CanvasImageManipulator {
   cropRect: CropRect
   line: Line
   text: TextGraphs
+  textController: TextController
 
   ro: ResizeObserver
 
@@ -76,6 +78,7 @@ export class CanvasImageManipulator {
     this.cropRect = new CropRect()
     this.line = new Line()
     this.text = new TextGraphs()
+    this.textController = new TextController(this)
 
     this.ro = new ResizeObserver(entries => {
       entries.forEach(entry => {
@@ -311,7 +314,7 @@ export class CanvasImageManipulator {
         // this.erase(this.line.lineStartX, this.line.lineStartY, this.line.lineWidth)
       }
     } else if (this.canvasModel === CanvasModel.Text) {
-      console.log(mouseX, mouseY);
+      this.textController.draw(mouseX, mouseY)
     }
 
     // console.log(this.cropRect.InCropModule);
@@ -510,7 +513,7 @@ export class CanvasImageManipulator {
     // this.lastY = 0;
   }
 
-  private draw() {
+  draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     if (this.canvasModel === CanvasModel.Crop) {
@@ -520,13 +523,22 @@ export class CanvasImageManipulator {
 
     this.drawImage()
     this.drawLine()
-    // // 绘制文本
-    // this.ctx.font = `${this.textAttribute.fontSize}px ${this.textAttribute.fontFamily}`;
-    // this.ctx.textAlign = this.textAttribute.textAlign as CanvasTextAlign;
-    // this.ctx.fillStyle = this.textAttribute.fillStyle;
-    // this.ctx.fillText('Hello Canvas', this.textAttribute.X, this.textAttribute.y);
+    this.drawText()
+
   }
 
+  drawText() {
+    for (let index = 0; index < this.text.textData.length; index++) {
+      const {
+        data, x, y, attribute
+      } = this.text.textData[index];
+      console.log(data, x, y, attribute);
+      this.ctx.font = `${attribute.fontSize}px ${attribute.fontFamily}`;
+      // this.ctx.textAlign = this.textAttribute.textAlign as CanvasTextAlign;
+      this.ctx.fillStyle = 'red';
+      this.ctx.fillText(data, x, y);
+    }
+  }
 
   // // 缩放中心点，这里以画布中心为例
   // const centerX = canvas.width / 2;

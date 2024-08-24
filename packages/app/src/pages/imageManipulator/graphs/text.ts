@@ -57,7 +57,7 @@ export class TextGraphs {
     this.textAttribute = {
       fontFamily: 'sans-serif',
       fontSize: 14,
-      fontColor: '#000',
+      fontColor: '#000000',
       fontWeight: FontWeight.Normal,
       fontStyle: FontStyle.Normal,
       fontUnderline: FontUnderline.Normal,

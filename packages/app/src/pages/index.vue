@@ -260,7 +260,7 @@ const handleClickFilter = (item: FilterType) => {
 }
 
 const fontSize = ref(14)
-const fontColor = ref('#000')
+const fontColor = ref('#000000')
 
 watch(() => [fontSize.value, fontColor.value], () => {
   setTextAttribute()
