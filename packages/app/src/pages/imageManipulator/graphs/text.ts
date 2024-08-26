@@ -16,7 +16,6 @@ export enum FontUnderline {
   Underline = 'underline',
 }
 
-
 // 删除线
 export enum FontLineThrough {
   Normal = 'normal',
@@ -44,6 +43,10 @@ interface TextProps {
   attribute: TextAttribute
   x: number
   y: number
+  w: number
+  h: number
+  ascent: number
+  descent: number
   data: string
 }
 interface BoxData {

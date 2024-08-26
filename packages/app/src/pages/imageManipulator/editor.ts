@@ -1,5 +1,5 @@
 import { TextController } from './controller';
-import { CropRect, DrawType, FilterType, Image, ImageStyleKey, Line, MouseInCropModule, TextAttribute, TextGraphs } from './graphs/index'
+import { CropRect, DrawType, FilterType, FontLineThrough, FontUnderline, Image, ImageStyleKey, Line, MouseInCropModule, TextAttribute, TextGraphs } from './graphs/index'
 import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform, getNextPixel, getNextRowPixel, getPreviousPixel, isLastRow, isLastPixelInRow, getPreviousRowPixel, applyConvolution } from './utils';
 
 export enum CanvasModel {
@@ -540,6 +540,7 @@ export class CanvasImageManipulator {
   }
 
   drawText() {
+    this.ctx.save();
     for (let index = 0; index < this.text.textData.length; index++) {
       const {
         boxData,
@@ -553,7 +554,7 @@ export class CanvasImageManipulator {
       for (let propsIndex = 0; propsIndex < textProps.length; propsIndex++) {
         // console.log(123, textProps[propsIndex]);
 
-        const { attribute, x, y, data } = textProps[propsIndex]
+        const { attribute, x, y, data, w, h, ascent } = textProps[propsIndex]
         const {
           fontSize,
           fontFamily,
@@ -563,15 +564,39 @@ export class CanvasImageManipulator {
           fontUnderline,
           fontLineThrough
         } = attribute;
+
+        console.log(123, w, h, x, y,);
+
+        // 绘制下划线
+        if (fontUnderline === FontUnderline.Underline) {
+          this.ctx.lineWidth = 1;
+          this.ctx.strokeStyle = fontColor;
+          this.ctx.beginPath();
+          // 5 是下划线与文本底部的距离
+          this.ctx.moveTo(x, y + 5);
+          this.ctx.lineTo(x + w, y + 5);
+          this.ctx.stroke();
+        }
+
+        // 绘制删除线
+        if (fontLineThrough === FontLineThrough.LineThrough) {
+          this.ctx.lineWidth = 1;
+          this.ctx.strokeStyle = fontColor;
+          this.ctx.beginPath();
+          // TODO: 文字基线Y有问题计算
+          this.ctx.moveTo(x, y - 10); // -2 是删除线与文本顶部的距离
+          this.ctx.lineTo(x + w, y - 10);
+          this.ctx.stroke();
+        }
+
         // this.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
-
-        console.log(fontSize, fontColor);
-
         this.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
+        // console.log(fontSize, this.ctx.measureText(data).width);
         this.ctx.fillStyle = fontColor;
         this.ctx.fillText(data, x, y);
       }
     }
+    this.ctx.restore();
   }
 
   // // 缩放中心点，这里以画布中心为例
@@ -888,7 +913,7 @@ export class CanvasImageManipulator {
   }
   setTextAttribute(attribute: TextAttribute) {
     this.text.textAttribute = { ...this.text.textAttribute, ...attribute }
-    console.log(123, this.text.textAttribute);
+    // console.log(123, this.text.textAttribute);
   }
 }
 

@@ -60,15 +60,32 @@ export class TextController {
         return
       }
       data.split('').forEach(e => {
+        const {
+          fontSize,
+          fontFamily,
+          fontWeight,
+          fontStyle,
+        } = this.edit.text.textAttribute;
+        this.edit.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
+        // // 计算基线
+        // const baselineAscent = this.edit.ctx?.zfont?.match(/\d+/)[0] * 0.7 as any; // 大致估算基线位置
+        // const baselineDescent = this.edit.ctx.font.match(/\d+/)[0] * 0.3; // 大致估算基线位置
+        const { width, actualBoundingBoxAscent, actualBoundingBoxDescent } = this.edit.ctx.measureText(e);
+        const h = actualBoundingBoxAscent + actualBoundingBoxDescent
         this.edit.text.textData[this.edit.text.textData.length - 1].textProps.push({
           attribute: this.edit.text.textAttribute,
+          ascent: actualBoundingBoxAscent,
+          descent: actualBoundingBoxDescent,
+          w: width,
+          h,
           x: this.drawText.x,
+          // TODO: 文字基线Y有问题计算
           y: this.drawText.y + this.edit.text.textAttribute.fontSize,
           data: e,
         })
-        this.drawText.x += this.edit.text.textAttribute.fontSize
+        this.drawText.x += width
 
-        this.setCursor(this.drawText.x, this.y, this.edit.text.textAttribute.fontSize * 1.2)
+        this.setCursor(this.drawText.x, this.y, h * 1.2)
       })
 
       this.edit.draw()
@@ -109,6 +126,8 @@ export class TextController {
     this.input.value = ''
 
     this.focusInput()
+
+    // TODO: 这里光标的高度有待商榷
     this.setCursor(this.x, this.y, this.edit.text.textAttribute.fontSize * 1.2)
 
     Object.assign(this.input.style, {
