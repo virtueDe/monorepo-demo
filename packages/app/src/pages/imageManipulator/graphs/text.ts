@@ -46,12 +46,22 @@ interface TextProps {
   y: number
   data: string
 }
+interface BoxData {
+  w: number
+  h: number
+  x: number
+  y: number
+}
+
+interface textData {
+  boxData: BoxData
+  textProps: TextProps[]
+}
 
 export class TextGraphs {
   cursor: string = 'text';
   textAttribute!: TextAttribute
-
-  textData: TextProps[] = []
+  textData: textData[] = []
 
   constructor() {
     this.textAttribute = {

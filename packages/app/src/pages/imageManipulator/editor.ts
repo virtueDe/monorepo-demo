@@ -12,8 +12,10 @@ export enum CanvasModel {
 }
 
 export class CanvasImageManipulator {
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
+  container: HTMLElement
+
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
   private dpi: number = 1;
   canvasModel: CanvasModel = CanvasModel.Preview
 
@@ -34,7 +36,6 @@ export class CanvasImageManipulator {
     cursor: 'default',
     dragging: false,
   }
-
 
 
   image: Image;
@@ -59,14 +60,19 @@ export class CanvasImageManipulator {
     this.dpi = window.devicePixelRatio || 1;
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
 
-    const parentWidth = this.canvas.parentElement!.offsetWidth;
-    const parentHeight = this.canvas.parentElement!.offsetHeight;
+    this.container = this.canvas.parentElement as HTMLDivElement;
+
+    const parentWidth = this.container!.offsetWidth;
+    const parentHeight = this.container!.offsetHeight;
 
     this.canvas.width = parentWidth * this.dpi;
     this.canvas.height = parentHeight * this.dpi;
 
     this.canvas.style.width = parentWidth + 'px';
     this.canvas.style.height = parentHeight + 'px';
+    this.canvas.style.position = 'absolute'
+    this.canvas.style.top = '0px'
+    this.canvas.style.left = '0px'
 
     this.viewportWidth = parentWidth
     this.viewportHeight = parentHeight
@@ -525,18 +531,46 @@ export class CanvasImageManipulator {
     this.drawLine()
     this.drawText()
 
+
+    // this.textController.setCursor(0, 0, 14)
+    // this.ctx.font = `${this.text.textAttribute.fontSize}px ${this.text.textAttribute.fontFamily}`;
+    // // this.ctx.textAlign = 'center';
+    // this.ctx.fillStyle = 'red';
+    // this.ctx.fillText('测', 0, 14);
   }
 
   drawText() {
     for (let index = 0; index < this.text.textData.length; index++) {
       const {
-        data, x, y, attribute
+        boxData,
+        textProps
       } = this.text.textData[index];
-      console.log(data, x, y, attribute);
-      this.ctx.font = `${attribute.fontSize}px ${attribute.fontFamily}`;
-      // this.ctx.textAlign = this.textAttribute.textAlign as CanvasTextAlign;
-      this.ctx.fillStyle = 'red';
-      this.ctx.fillText(data, x, y);
+
+      if (this.textController.isActive) {
+        this.textController.drawTextBox(boxData)
+      }
+
+      for (let propsIndex = 0; propsIndex < textProps.length; propsIndex++) {
+        // console.log(123, textProps[propsIndex]);
+
+        const { attribute, x, y, data } = textProps[propsIndex]
+        const {
+          fontSize,
+          fontFamily,
+          fontColor,
+          fontWeight,
+          fontStyle,
+          fontUnderline,
+          fontLineThrough
+        } = attribute;
+        // this.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
+
+        console.log(fontSize, fontColor);
+
+        this.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
+        this.ctx.fillStyle = fontColor;
+        this.ctx.fillText(data, x, y);
+      }
     }
   }
 
@@ -854,6 +888,7 @@ export class CanvasImageManipulator {
   }
   setTextAttribute(attribute: TextAttribute) {
     this.text.textAttribute = { ...this.text.textAttribute, ...attribute }
+    console.log(123, this.text.textAttribute);
   }
 }
 

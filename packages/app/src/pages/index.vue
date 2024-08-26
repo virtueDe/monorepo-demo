@@ -259,8 +259,8 @@ const handleClickFilter = (item: FilterType) => {
   canvasInstance.value?.changeFilter(filterTypeValue.value)
 }
 
-const fontSize = ref(14)
-const fontColor = ref('#000000')
+const fontSize = ref(30)
+const fontColor = ref('#ff0000')
 
 watch(() => [fontSize.value, fontColor.value], () => {
   setTextAttribute()
@@ -275,7 +275,7 @@ const handleClickTextStyle = (item: { title: string, icon: string, use: boolean 
 const setTextAttribute = () => {
   canvasInstance.value?.setTextAttribute({
     fontFamily: 'sans-serif',
-    fontSize: fontSize.value,
+    fontSize: Number(fontSize.value),
     fontColor: fontColor.value,
 
     fontWeight: fontStyleList.value[0].use ? FontWeight.Bold : FontWeight.Normal,
@@ -340,6 +340,7 @@ const handleChangeIndex = (item: BarItem, index: number) => {
     } else if (index === 3) {
       canvasInstance.value?.switchCanvasModel(CanvasModel.DrawLine)
     } else if (index === 5) {
+      setTextAttribute()
       canvasInstance.value?.switchCanvasModel(CanvasModel.Text)
     }
   })
@@ -575,7 +576,7 @@ onMounted(() => {
         </div>
       </div>
       <!-- transition-left duration-350 currentBarIndex === 0 ? 'left-60px w-[calc(100%-60px)]' :-->
-      <div class="h-100% flex-auto bg-[#202020] pos-absolute top-0 box-border"
+      <div class="h-100% flex-auto bg-[#202020] pos-absolute top-0 box-border overflow-hidden"
         :class="['left-340px w-[calc(100%-340px)]']">
         <canvas id="canvas"></canvas>
       </div>
