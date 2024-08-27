@@ -6,7 +6,7 @@ import { Cursor } from "./cursor";
 
 const TEXT_BOX_PADDING = 20
 export class TextController {
-  input!: HTMLInputElement;
+  input!: HTMLElement;
   cursor!: Cursor
 
   isCompositing: boolean = false
@@ -27,7 +27,7 @@ export class TextController {
     this.cursor = new Cursor(this.edit.container)
   }
   private createdInput() {
-    this.input = document.createElement('input');
+    this.input = document.createElement('textarea');
     const styles = {
       padding: '0',
       position: 'fixed',
@@ -80,7 +80,8 @@ export class TextController {
           h,
           x: this.drawText.x,
           // TODO: 文字基线Y有问题计算
-          y: this.drawText.y + this.edit.text.textAttribute.fontSize,
+          // y: this.drawText.y + this.edit.text.textAttribute.fontSize,
+          y: this.drawText.y,
           data: e,
         })
         this.drawText.x += width
