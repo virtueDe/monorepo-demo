@@ -6,7 +6,7 @@ import { Cursor } from "./cursor";
 
 const TEXT_BOX_PADDING = 20
 export class TextController {
-  input!: HTMLElement;
+  input!: HTMLTextAreaElement;
   cursor!: Cursor
 
   isCompositing: boolean = false
