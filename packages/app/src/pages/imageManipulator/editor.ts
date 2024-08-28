@@ -1,4 +1,4 @@
-import { TextController } from './textEdite';
+import { TextEditor, ITextAttr } from './text-editor';
 import { CropRect, DrawType, FilterType, FontLineThrough, FontUnderline, Image, ImageStyleKey, Line, MouseInCropModule, TextAttribute, TextGraphs } from './graphs/index'
 import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform, getNextPixel, getNextRowPixel, getPreviousPixel, isLastRow, isLastPixelInRow, getPreviousRowPixel, applyConvolution } from './utils';
 
@@ -41,8 +41,8 @@ export class CanvasImageManipulator {
   image: Image;
   cropRect: CropRect
   line: Line
-  text: TextGraphs
-  textController: TextController
+  // textEditor: TextGraphs
+  textEditor: TextEditor
 
   ro: ResizeObserver
 
@@ -83,8 +83,8 @@ export class CanvasImageManipulator {
     this.image = new Image();
     this.cropRect = new CropRect()
     this.line = new Line()
-    this.text = new TextGraphs()
-    this.textController = new TextController(this)
+    // this.textEditor = new TextGraphs()
+    this.textEditor = new TextEditor(this)
 
     this.ro = new ResizeObserver(entries => {
       entries.forEach(entry => {
@@ -320,7 +320,7 @@ export class CanvasImageManipulator {
         // this.erase(this.line.lineStartX, this.line.lineStartY, this.line.lineWidth)
       }
     } else if (this.canvasModel === CanvasModel.Text) {
-      this.textController.draw(mouseX, mouseY)
+      // this.textEditor.draw(mouseX, mouseY)
     }
 
     // console.log(this.cropRect.InCropModule);
@@ -439,7 +439,7 @@ export class CanvasImageManipulator {
       } else if (this.canvasModel === CanvasModel.DrawLine) {
         cursor = this.line.cursor
       } else if (this.canvasModel === CanvasModel.Text) {
-        cursor = this.text.cursor
+        cursor = 'text'
       }
 
       this.canvas.style.cursor = cursor;
@@ -529,7 +529,8 @@ export class CanvasImageManipulator {
 
     this.drawImage()
     this.drawLine()
-    this.drawText()
+
+    // this.drawText()
 
 
     // this.textController.setCursor(0, 0, 14)
@@ -540,63 +541,63 @@ export class CanvasImageManipulator {
   }
 
   drawText() {
-    this.ctx.save();
-    for (let index = 0; index < this.text.textData.length; index++) {
-      const {
-        boxData,
-        textProps
-      } = this.text.textData[index];
+    // this.ctx.save();
+    // for (let index = 0; index < this.text.textData.length; index++) {
+    //   const {
+    //     boxData,
+    //     textProps
+    //   } = this.text.textData[index];
 
-      if (this.textController.isActive) {
-        this.textController.drawTextBox(boxData)
-      }
+    //   if (this.textController.isActive) {
+    //     this.textController.drawTextBox(boxData)
+    //   }
 
-      for (let propsIndex = 0; propsIndex < textProps.length; propsIndex++) {
-        // console.log(123, textProps[propsIndex]);
+    //   for (let propsIndex = 0; propsIndex < textProps.length; propsIndex++) {
+    //     // console.log(123, textProps[propsIndex]);
 
-        const { attribute, x, y, data, w, h, ascent } = textProps[propsIndex]
-        const {
-          fontSize,
-          fontFamily,
-          fontColor,
-          fontWeight,
-          fontStyle,
-          fontUnderline,
-          fontLineThrough
-        } = attribute;
+    //     const { attribute, x, y, data, w, h, ascent } = textProps[propsIndex]
+    //     const {
+    //       fontSize,
+    //       fontFamily,
+    //       fontColor,
+    //       fontWeight,
+    //       fontStyle,
+    //       fontUnderline,
+    //       fontLineThrough
+    //     } = attribute;
 
-        console.log(123, w, h, x, y,);
+    //     console.log(123, w, h, x, y,);
 
-        // 绘制下划线
-        if (fontUnderline === FontUnderline.Underline) {
-          this.ctx.lineWidth = 1;
-          this.ctx.strokeStyle = fontColor;
-          this.ctx.beginPath();
-          // 5 是下划线与文本底部的距离
-          this.ctx.moveTo(x, y + 5);
-          this.ctx.lineTo(x + w, y + 5);
-          this.ctx.stroke();
-        }
+    //     // 绘制下划线
+    //     if (fontUnderline === FontUnderline.Underline) {
+    //       this.ctx.lineWidth = 1;
+    //       this.ctx.strokeStyle = fontColor;
+    //       this.ctx.beginPath();
+    //       // 5 是下划线与文本底部的距离
+    //       this.ctx.moveTo(x, y + 5);
+    //       this.ctx.lineTo(x + w, y + 5);
+    //       this.ctx.stroke();
+    //     }
 
-        // 绘制删除线
-        if (fontLineThrough === FontLineThrough.LineThrough) {
-          this.ctx.lineWidth = 1;
-          this.ctx.strokeStyle = fontColor;
-          this.ctx.beginPath();
-          // TODO: 文字基线Y有问题计算
-          this.ctx.moveTo(x, y - 10); // -2 是删除线与文本顶部的距离
-          this.ctx.lineTo(x + w, y - 10);
-          this.ctx.stroke();
-        }
+    //     // 绘制删除线
+    //     if (fontLineThrough === FontLineThrough.LineThrough) {
+    //       this.ctx.lineWidth = 1;
+    //       this.ctx.strokeStyle = fontColor;
+    //       this.ctx.beginPath();
+    //       // TODO: 文字基线Y有问题计算
+    //       this.ctx.moveTo(x, y - 10); // -2 是删除线与文本顶部的距离
+    //       this.ctx.lineTo(x + w, y - 10);
+    //       this.ctx.stroke();
+    //     }
 
-        // this.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
-        this.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
-        // console.log(fontSize, this.ctx.measureText(data).width);
-        this.ctx.fillStyle = fontColor;
-        this.ctx.fillText(data, x, y);
-      }
-    }
-    this.ctx.restore();
+    //     // this.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
+    //     this.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
+    //     // console.log(fontSize, this.ctx.measureText(data).width);
+    //     this.ctx.fillStyle = fontColor;
+    //     this.ctx.fillText(data, x, y);
+    //   }
+    // }
+    // this.ctx.restore();
   }
 
   // // 缩放中心点，这里以画布中心为例
@@ -911,9 +912,8 @@ export class CanvasImageManipulator {
     this.line.strokeStyle = options.strokeStyle
     this.line.drawType = options.drawType
   }
-  setTextAttribute(attribute: TextAttribute) {
-    this.text.textAttribute = { ...this.text.textAttribute, ...attribute }
-    // console.log(123, this.text.textAttribute);
+  setTextAttribute(textAttr: ITextAttr) {
+    this.textEditor.setOptions({ textAttr })
   }
 }
 
