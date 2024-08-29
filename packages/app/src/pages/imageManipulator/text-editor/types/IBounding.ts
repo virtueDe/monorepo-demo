@@ -1,9 +1,8 @@
-export interface IBoundingOptions {
-  w: number;
-  h: number;
-  x: number;
-  y: number;
-  borderWidth: number;
-  borderColor: string;
-  gap: number;
+import { IBounding, IPointBase } from ".";
+
+
+type IBoundingWithoutGap = Omit<IBounding, 'gap'>;
+
+export interface IDrawBoundingOptions extends IPointBase, IBoundingWithoutGap {
+
 }

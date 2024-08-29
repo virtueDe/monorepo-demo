@@ -1,7 +1,8 @@
 import { CanvasImageManipulator } from "../editor";
-import { defaultOptions } from "./constant/DefaultOptions";
-import { Cursor } from "./interaction/cursor";
-import { ITextEditorOptions, OptionalOptions } from "./types";
+import { defaultOptions } from "./constant/Options";
+import { Core } from "./core";
+import { Interaction } from "./interaction";
+import { ICreatePanelProps, ITextEditorOptions, OptionalOptions } from "./types";
 import { mergeOptions } from "./utils";
 // text 参考https://juejin.cn/post/7245922875181826108?searchId=20240824150138545A46D5FF471576A092#heading-10
 
@@ -9,6 +10,8 @@ import { mergeOptions } from "./utils";
 // const TEXT_BOX_PADDING = 20
 export class TextEditor {
   private options!: ITextEditorOptions
+  private core!: Core
+  private interaction!: Interaction
 
   // input!: HTMLTextAreaElement;
   // cursor!: Cursor
@@ -29,18 +32,42 @@ export class TextEditor {
 
     this.options = mergeOptions(defaultOptions, options || {})
 
-    console.log(this.rootCanvas, this.options);
+    this.core = new Core(this)
+    this.interaction = new Interaction(this)
+
+    // console.log(this.rootCanvas, this.options);
 
 
     // this.createdInput()
     // this.cursor = new Cursor(this.edit.container)
   }
+  public getRootCanvas() {
+    return this.rootCanvas
+  }
+  public getInteraction() {
+    return this.interaction
+  }
+  public getCore() {
+    return this.core
+  }
+
+
   public getOptions() {
     return this.options
   }
 
   public setOptions(options?: OptionalOptions) {
     this.options = mergeOptions(this.options, options || {})
+  }
+
+  public createTextEditorPanel({ x, y, w, h }: ICreatePanelProps) {
+    this.core.createPanel({ x, y, w, h })
+
+
+    this.rootCanvas.draw()
+  }
+  draw() {
+    this.core.draw()
   }
   // private createdInput() {
   //   this.input = document.createElement('textarea');

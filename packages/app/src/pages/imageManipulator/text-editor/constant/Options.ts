@@ -1,8 +1,8 @@
 import { ITextEditorOptions, IBounding, FontLineThrough, FontUnderline, FontStyle, FontWeight } from '../types'
 
-export const BORDER_WIDTH = 1
-export const BORDER_COLOR = '#000'
-export const GAP = 5
+export const BORDER_WIDTH = 2
+export const BORDER_COLOR = '#ffffff'
+export const GAP = 20
 
 export const BOUNDING: IBounding = {
   borderWidth: BORDER_WIDTH,

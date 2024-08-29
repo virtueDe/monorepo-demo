@@ -1,3 +1,6 @@
 export * from './IBounding'
 export * from './ITextEditor'
 export * from './TextAttr'
+export * from './Panel'
+export * from './Element'
+export * from './Row'

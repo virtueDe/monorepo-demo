@@ -25,3 +25,12 @@ export type DeepPartial<T> = {
 };
 
 export type OptionalOptions = DeepPartial<ITextEditorOptions>;
+
+export interface IPointBase {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface ICreatePanelProps extends IPointBase { }

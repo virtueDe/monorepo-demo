@@ -320,7 +320,8 @@ export class CanvasImageManipulator {
         // this.erase(this.line.lineStartX, this.line.lineStartY, this.line.lineWidth)
       }
     } else if (this.canvasModel === CanvasModel.Text) {
-      // this.textEditor.draw(mouseX, mouseY)
+      //
+      // this.textEditor.createTextEditorPanel({ x: mouseX, y: mouseY, w: 200, h: 100 })
     }
 
     // console.log(this.cropRect.InCropModule);
@@ -439,7 +440,7 @@ export class CanvasImageManipulator {
       } else if (this.canvasModel === CanvasModel.DrawLine) {
         cursor = this.line.cursor
       } else if (this.canvasModel === CanvasModel.Text) {
-        cursor = 'text'
+        // cursor = 'text'
       }
 
       this.canvas.style.cursor = cursor;
@@ -530,8 +531,8 @@ export class CanvasImageManipulator {
     this.drawImage()
     this.drawLine()
 
+    this.textEditor.draw()
     // this.drawText()
-
 
     // this.textController.setCursor(0, 0, 14)
     // this.ctx.font = `${this.text.textAttribute.fontSize}px ${this.text.textAttribute.fontFamily}`;
