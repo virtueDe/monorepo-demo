@@ -1,5 +1,5 @@
 import { TextEditor } from "../editor";
-import { ICreatePanelProps, PanelS, Rows } from "../types";
+import { ICreatePanelProps, IPanel, PanelS, Rows } from "../types";
 import { Panel } from "./panel";
 import { TextNode } from "./textNode";
 
@@ -14,16 +14,19 @@ export class Core {
 
 
   constructor(private textEditor: TextEditor) {
-    this.ctx = this.textEditor.getRootCanvas().ctx
+    this.ctx = this.textEditor.getRootCanvas.ctx
     this.panel = new Panel(this)
     this.textNode = new TextNode(this)
   }
   get interaction() {
-    return this.textEditor.getInteraction()
+    return this.textEditor.getInteraction
   }
-  public createPanel({ x, y, w, h }: ICreatePanelProps) {
+  get getPanel() {
+    return this.panel
+  }
+  public createPanel({ x, y, w, h }: ICreatePanelProps): IPanel {
     const panel = this.panel.createPanel({ x, y, w, h })
-    this.panels.push(panel)
+    return panel
   }
   public draw() {
 
@@ -46,7 +49,7 @@ export class Core {
     })
   }
   private drawText(rows: Rows) {
-    console.log(rows);
+    // console.log(rows);
   }
   onInput(text: string) {
     console.log(123, text);

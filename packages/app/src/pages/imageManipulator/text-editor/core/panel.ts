@@ -1,6 +1,6 @@
 import { Core } from ".";
 import { ZERO_NODE_VALUE } from "../constant";
-import { BOUNDING } from "../constant/Options";
+import { BOUNDING } from "../constant/Editor";
 import { Elements, ElementType, ICreatePanelProps, IPanel, IZeroNode, Rows } from "../types";
 import { getUUID } from "../utils";
 
@@ -51,10 +51,22 @@ export class Panel {
       focus: true,
       id: getUUID(),
       bounding: BOUNDING,
-      contentDrawPoint: [x, y],
-
+      contentDrawPoint: [x, y, w - BOUNDING.gap * 2, h - BOUNDING.gap * 2],
       children: rows,
     }
     return panel
+  }
+
+  findPanel(x: number, y: number) {
+    const panel = this.core.panels.find(panel => {
+      const { x: panelX, y: panelY, w, h } = panel
+      return x >= panelX && x <= panelX + w && y >= panelY && y <= panelY + h
+    })
+    return panel
+  }
+  blurPanel() {
+    this.core.panels.forEach(panel => {
+      panel.focus = false
+    })
   }
 }

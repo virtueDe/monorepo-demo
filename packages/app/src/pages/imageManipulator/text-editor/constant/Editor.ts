@@ -1,5 +1,8 @@
 import { ITextEditorOptions, IBounding, FontLineThrough, FontUnderline, FontStyle, FontWeight } from '../types'
 
+export const PANEL_WIDTH = 200
+export const PANEL_HEIGHT = 200
+
 export const BORDER_WIDTH = 2
 export const BORDER_COLOR = '#ffffff'
 export const GAP = 20

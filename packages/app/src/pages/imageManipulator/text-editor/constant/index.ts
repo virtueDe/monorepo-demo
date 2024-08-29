@@ -1,2 +1,2 @@
-export * from './Options'
+export * from './Editor'
 export * from './NodeValue'

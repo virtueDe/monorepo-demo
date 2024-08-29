@@ -12,7 +12,7 @@ export class Interaction {
   bounding!: Bounding;
   input!: Input
   constructor(private textEditor: TextEditor) {
-    this.ctx = this.textEditor.getRootCanvas().ctx
+    this.ctx = this.textEditor.getRootCanvas.ctx
 
     this.cursor = new Cursor(this)
     this.rang = new editorRange(this)
@@ -23,7 +23,7 @@ export class Interaction {
     return this.textEditor
   }
 
-  setPosition(x: number, y: number) {
+  setCursorPosition(x: number, y: number) {
     this.input.setPosition(x, y)
   }
 }

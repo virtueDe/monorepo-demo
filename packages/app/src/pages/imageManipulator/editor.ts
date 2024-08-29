@@ -320,7 +320,7 @@ export class CanvasImageManipulator {
         // this.erase(this.line.lineStartX, this.line.lineStartY, this.line.lineWidth)
       }
     } else if (this.canvasModel === CanvasModel.Text) {
-      //
+      this.textEditor.handleMousedown(mouseX, mouseY)
       // this.textEditor.createTextEditorPanel({ x: mouseX, y: mouseY, w: 200, h: 100 })
     }
 

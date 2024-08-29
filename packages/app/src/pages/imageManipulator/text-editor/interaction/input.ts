@@ -9,7 +9,7 @@ export class Input {
     this.inputEl = document.createElement('textarea');
     const styles = {
       padding: '0',
-      position: 'fixed',
+      position: 'position',
       zIndex: '-20',
     } as const;
     Object.assign(this.inputEl.style, styles);
@@ -21,7 +21,7 @@ export class Input {
     //   this.isCompositing = false
     // })
 
-    this.containerEl = this.interaction.getTextEditor().getRootCanvas().container
+    this.containerEl = this.interaction.getTextEditor().getRootCanvas.container
     this.containerEl.appendChild(this.inputEl)
   }
 
