@@ -57,6 +57,8 @@ export class TextEditor {
 
   public setOptions(options?: OptionalOptions) {
     this.options = mergeOptions(this.options, options || {})
+
+    this.core.getTextNode.setTextAttr(this.options.textAttr)
   }
   public handleMousedown(x: number, y: number) {
     this.core.getPanel.blurPanel()
@@ -87,6 +89,7 @@ export class TextEditor {
     // 2. 如果是新建输入的，更新鼠标位置到输入框的开头
     this.interaction.setCursorPosition(cursorPoint.x, cursorPoint.y)
 
+    this.interaction.input.focus()
 
     this.rootCanvas.draw()
   }
@@ -95,8 +98,7 @@ export class TextEditor {
   }
   draw() {
     this.core.draw()
-
-    console.log(this.core.panels);
+    console.log('this.core.panels', this.core.panels);
   }
   // private createdInput() {
   //   this.input = document.createElement('textarea');

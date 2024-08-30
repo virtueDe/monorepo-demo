@@ -1,7 +1,7 @@
 import { Core } from ".";
 import { ZERO_NODE_VALUE } from "../constant";
 import { BOUNDING } from "../constant/Editor";
-import { Elements, ElementType, ICreatePanelProps, IPanel, IZeroNode, Rows } from "../types";
+import { Elements, ICreatePanelProps, IPanel, IZeroNode, Rows, TextNodeType } from "../types";
 import { getUUID } from "../utils";
 
 export class Panel {
@@ -9,39 +9,19 @@ export class Panel {
   }
   createPanel({ x, y, w, h }: ICreatePanelProps): IPanel {
 
-    const textNode: IZeroNode = {
-      type: ElementType.ZERONode,
-      value: ZERO_NODE_VALUE,
-      id: getUUID(),
-    }
+    const textNode = this.core.getTextNode
+
+    const zeroNode = textNode.createTextNode(TextNodeType.ZeroNode, ZERO_NODE_VALUE, textNode.textAttr)
 
     const elements: Elements = []
 
-    elements.push(textNode)
+    elements.push(zeroNode)
 
-    const rows: Rows = []
+    // const rows: Rows = []
 
-    rows.push({
-      children: elements,
-    })
-    // const enterNode: INodeRuntime = {
-    //   type: LINEFEED_NODE,
-    //   nodes: [],
-    //   data: {
-    //     docId: baseNode.data.docId,
-    //     pid: baseNode.data.pid,
-    //     prole: baseNode.data.prole,
-    //     pname: baseNode.data.pname,
-    //     id: getUUID(),
-    //     value: ZERO,
-    //     index: -1,
-    //     marks: deepclone(baseNode.data.marks),
-    //     metrics: this.interactionEngine.getCore().getRenderEngine().getBreakPageComputer().getNodeMetrics(ZERO, baseNode.data.marks),
-    //     position: getNodeDefaultPosition(),
-    //     role: isInControl ? CONTENT : '',
-    //     ...controlData,
-    //   },
-    // };
+    // rows.push({
+    //   children: elements,
+    // })
 
     const panel: IPanel = {
       x: x - BOUNDING.gap,
@@ -52,7 +32,7 @@ export class Panel {
       id: getUUID(),
       bounding: BOUNDING,
       contentDrawPoint: [x, y, w - BOUNDING.gap * 2, h - BOUNDING.gap * 2],
-      children: rows,
+      children: elements,
     }
     return panel
   }

@@ -1,43 +1,86 @@
+import { ITextAttr } from "./ITextEditor";
 
 
 
-// 定义所有可能的元素类型
-export enum ElementType {
+export enum TextNodeType {
   SpaceNode = 'spaceNode',
   BreakNode = 'breakNode',
-  ZERONode = 'zeroNode',
-
+  ZeroNode = 'zeroNode',
   TextNode = 'textNode',
 }
-
-// 定义 IElement 接口，支持不同类型元素的描述
+export enum ElementType {
+  TextNode = 'TextNode',
+  ImageNode = 'imageNode',
+  FormulaNode = 'formulaNode',
+  OtherNode = 'otherNode',
+}
 export interface IElement {
-  type: ElementType;
-  id: string
-  // 根据元素类型添加额外的属性
-  // [key: string]: any; // 这里可以更具体地定义每个类型所需的属性
+  type: ElementType | TextNodeType;
+  id: string;
+}
+
+export interface INodeMetrics {
+  width: number;
+  height: number;
+  actualBoundingBoxAscent: number;
+  actualBoundingBoxDescent: number;
+  fontBoundingBoxAscent?: number;
+  fontBoundingBoxDescent?: number;
 }
 
 // 文本节点基类
-export interface ITextNode extends IElement {
-  type: ElementType.SpaceNode | ElementType.BreakNode | ElementType.TextNode | ElementType.ZERONode;
+export interface IBaseTextNode extends IElement {
+  type: TextNodeType;
   value: string;
+  metrics: INodeMetrics;
+  attr: ITextAttr;
 }
 
 // 空格节点
-export interface ISpaceNode extends ITextNode {
-  type: ElementType.SpaceNode;
+export interface ISpaceNode extends IBaseTextNode {
+  type: TextNodeType.SpaceNode;
 }
 
 // 换行节点
-export interface IBreakNode extends ITextNode {
-  type: ElementType.BreakNode;
+export interface IBreakNode extends IBaseTextNode {
+  type: TextNodeType.BreakNode;
 }
 
-// 换行节点
-export interface IZeroNode extends ITextNode {
-  type: ElementType.ZERONode;
+// 零宽占位符节点
+export interface IZeroNode extends IBaseTextNode {
+  type: TextNodeType.ZeroNode;
 }
 
-// 元素数组类型
-export type Elements = (ISpaceNode | IBreakNode | ITextNode | IZeroNode)[];
+// 普通文本节点
+export interface ITextNode extends IBaseTextNode {
+  type: TextNodeType.TextNode;
+}
+
+// 图片节点
+export interface IImageNode extends IElement {
+  type: ElementType.ImageNode;
+  src: string;
+  alt: string;
+  metrics: INodeMetrics;
+}
+
+// 公式节点
+export interface IFormulaNode extends IElement {
+  type: ElementType.FormulaNode;
+  formula: string;
+  metrics: INodeMetrics;
+}
+
+// 其他节点
+export interface IOtherNode extends IElement {
+  type: ElementType.OtherNode;
+  content: any;
+  metrics: INodeMetrics;
+}
+
+export type Elements =
+  (| IImageNode
+    | IFormulaNode
+    | IOtherNode
+    | ITextNode | ISpaceNode | IBreakNode | IZeroNode
+  )[];

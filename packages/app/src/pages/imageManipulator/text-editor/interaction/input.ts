@@ -9,7 +9,7 @@ export class Input {
     this.inputEl = document.createElement('textarea');
     const styles = {
       padding: '0',
-      position: 'position',
+      position: 'absolute',
       zIndex: '-20',
     } as const;
     Object.assign(this.inputEl.style, styles);
@@ -31,12 +31,7 @@ export class Input {
     if (!data) {
       return
     }
-    setTimeout(() => {
-      data.split('').forEach(e => {
-        this.interaction.getTextEditor().getCore().onInput(e)
-      })
-    }, 0)
-
+    this.interaction.getTextEditor().getCore().onInput(data)
   }
   setPosition(x: number, y: number) {
     this.inputEl.style.left = x + 'px'
