@@ -14,24 +14,28 @@ export class Input {
     } as const;
     Object.assign(this.inputEl.style, styles);
     this.inputEl.addEventListener('input', this.onInput.bind(this));
-    // this.inputEl.addEventListener('compositionstart', () => {
-    //   this.isCompositing = true
-    // })
-    // this.inputEl.addEventListener('compositionend', () => {
-    //   this.isCompositing = false
-    // })
+
+    this.inputEl.addEventListener('compositionstart', () => {
+      this.isCompositing = true
+    })
+    this.inputEl.addEventListener('compositionend', () => {
+      this.isCompositing = false
+    })
 
     this.containerEl = this.interaction.getTextEditor().getRootCanvas.container
     this.containerEl.appendChild(this.inputEl)
   }
 
   onInput(Event: Event) {
-    const e = Event as InputEvent
-    let data = e.data
-    if (!data) {
-      return
-    }
-    this.interaction.getTextEditor().getCore().onInput(data)
+    setTimeout(() => {
+      const e = Event as InputEvent
+      let data = e.data
+      if (!data || this.isCompositing) {
+        return
+      }
+      this.interaction.getTextEditor().getCore().onInput(data)
+    })
+
   }
   setPosition(x: number, y: number) {
     this.inputEl.style.left = x + 'px'

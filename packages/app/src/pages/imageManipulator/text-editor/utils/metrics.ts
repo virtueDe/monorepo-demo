@@ -13,7 +13,7 @@ export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
-  const textMetrics = ctx.measureText('测试文本');
+  const textMetrics = ctx.measureText(text);
   /**
   *
   * actualBoundingBoxAscent 从文本基线到顶线的距离
@@ -34,9 +34,9 @@ export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
   * 字体文字样式下的行高度: textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
   */
 
-
   return {
-    width: textMetrics.actualBoundingBoxRight + textMetrics.actualBoundingBoxLeft,
+    // 斜体需要用到实际宽度
+    width: textMetrics.width,
     height: textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent,
 
     actualBoundingBoxAscent: textMetrics.actualBoundingBoxAscent,

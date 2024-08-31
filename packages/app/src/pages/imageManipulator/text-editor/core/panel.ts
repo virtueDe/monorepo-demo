@@ -12,7 +12,6 @@ export class Panel {
     const textNode = this.core.getTextNode
 
     const zeroNode = textNode.createTextNode(TextNodeType.ZeroNode, ZERO_NODE_VALUE, textNode.textAttr)
-
     const elements: Elements = []
 
     elements.push(zeroNode)
