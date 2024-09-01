@@ -37,12 +37,12 @@ export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
   return {
     // 斜体需要用到实际宽度
     width: textMetrics.width,
-    height: textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent,
+    height: textMetrics.actualBoundingBoxAscent || 0 + textMetrics.actualBoundingBoxDescent || 0,
 
-    actualBoundingBoxAscent: textMetrics.actualBoundingBoxAscent,
-    actualBoundingBoxDescent: textMetrics.actualBoundingBoxDescent,
+    actualBoundingBoxAscent: textMetrics.actualBoundingBoxAscent || 0,
+    actualBoundingBoxDescent: textMetrics.actualBoundingBoxDescent || 0,
 
-    fontBoundingBoxAscent: textMetrics.fontBoundingBoxAscent,
-    fontBoundingBoxDescent: textMetrics.fontBoundingBoxDescent,
+    fontBoundingBoxAscent: textMetrics.fontBoundingBoxAscent || 0,
+    fontBoundingBoxDescent: textMetrics.fontBoundingBoxDescent || 0,
   }
 }

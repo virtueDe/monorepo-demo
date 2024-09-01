@@ -154,6 +154,7 @@ export class Core {
     return panel
   }
   public draw() {
+    console.time('draw')
     this.panels.forEach(panel => {
       const { focus, bounding, x, y, w, h, children, contentDrawPoint } = panel
 
@@ -170,8 +171,10 @@ export class Core {
       }
       this.drawElements(children, contentDrawPoint)
     })
+    console.timeEnd('draw')
   }
   drawElements(elements: Elements, drawRange: number[]) {
+    // 要先计算出每一行的渲染基线的位置
     let [drawRangeX, drawRangeY, drawRangeW, drawRangeH] = drawRange
 
     let index = 0;
@@ -182,10 +185,10 @@ export class Core {
     // 当前渲染在第几行
     let rowIndex = 0
     // 文字渲染的X, Y
-    let drawY = 0
+    let drawY = drawRangeY
     let drawX = drawRangeX
-    //
-    let drawHeightArr = []
+
+    let rowHeightRow = []
 
 
     while (index < elements.length) {
@@ -215,15 +218,12 @@ export class Core {
         }
 
         let drawHeight = 0
-        if (fontBoundingBoxAscent && fontBoundingBoxDescent) {
-          drawHeight = (fontBoundingBoxAscent + fontBoundingBoxDescent)
-          drawHeightArr.push(drawHeight)
-        }
+        drawHeight = (fontBoundingBoxAscent + fontBoundingBoxDescent)
+        rowHeightRow.push(drawHeight)
 
         if (againComputeY) {
           rowIndex++
-          // TODO: 这里算的不对，不应该这样算
-          drawY = drawRangeY + (rowIndex * Math.min(...drawHeightArr))
+          drawY += drawHeight
           againComputeY = false
           residualWidth = drawRangeW
         }
@@ -243,10 +243,8 @@ export class Core {
           this.ctx.lineWidth = 1;
           this.ctx.strokeStyle = fontColor;
           this.ctx.beginPath();
-          if (fontBoundingBoxAscent && fontBoundingBoxDescent) {
-            this.ctx.moveTo(drawX, drawY + fontBoundingBoxDescent - drawHeight / 2);
-            this.ctx.lineTo(drawX + width, drawY + fontBoundingBoxDescent - drawHeight / 2);
-          }
+          this.ctx.moveTo(drawX, drawY + fontBoundingBoxDescent - drawHeight / 2);
+          this.ctx.lineTo(drawX + width, drawY + fontBoundingBoxDescent - drawHeight / 2);
           this.ctx.stroke();
         }
 
@@ -278,7 +276,6 @@ export class Core {
 
     const textNodeList = text.split('').map(char => {
       const textNode = this.textNode.createTextNode(TextNodeType.TextNode, char, this.textNode.textAttr)
-      console.log(textNode);
       // const textNodeData: ITextNode = {
       //   type: ElementType.TextNode,
       //   value: char,
@@ -289,8 +286,7 @@ export class Core {
     })
 
     this.focusPanel?.children.push(...textNodeList)
-    console.log(this.focusPanel, this.panels, JSON.stringify(this.panels));
-    this.draw()
+    this.textEditor.getRootCanvas.draw()
     // console.log(123, text);
     // const textNodeData: ITextNode = {
     //   type: ElementType.TextNode,

@@ -24,8 +24,8 @@ export interface INodeMetrics {
   height: number;
   actualBoundingBoxAscent: number;
   actualBoundingBoxDescent: number;
-  fontBoundingBoxAscent?: number;
-  fontBoundingBoxDescent?: number;
+  fontBoundingBoxAscent: number;
+  fontBoundingBoxDescent: number;
 }
 
 // 文本节点基类
