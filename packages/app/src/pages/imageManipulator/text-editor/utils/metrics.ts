@@ -35,7 +35,7 @@ export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
   */
 
   return {
-    // 斜体需要用到实际宽度
+    // TODO: 斜体需要用到实际宽度
     width: textMetrics.width,
     height: textMetrics.actualBoundingBoxAscent || 0 + textMetrics.actualBoundingBoxDescent || 0,
 

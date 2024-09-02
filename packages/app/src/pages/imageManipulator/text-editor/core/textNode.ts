@@ -10,6 +10,7 @@ export class TextNode {
   createTextNode(type: TextNodeType, value: string, attr: ITextAttr) {
     const metrics = getMetrics(value, attr)
     return {
+      rowIndex: 0,
       type,
       value,
       attr,

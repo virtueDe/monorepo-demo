@@ -17,6 +17,7 @@ export enum ElementType {
 export interface IElement {
   type: ElementType | TextNodeType;
   id: string;
+  rowIndex: number;
 }
 
 export interface INodeMetrics {
