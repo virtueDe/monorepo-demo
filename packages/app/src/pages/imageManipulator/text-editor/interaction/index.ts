@@ -5,8 +5,6 @@ import { Bounding } from "./bounding";
 import { Input } from "./input";
 export class Interaction {
   ctx!: CanvasRenderingContext2D;
-
-
   cursor!: Cursor
   rang!: editorRange;
   bounding!: Bounding;
@@ -25,5 +23,6 @@ export class Interaction {
 
   setCursorPosition(x: number, y: number) {
     this.input.setPosition(x, y)
+    this.cursor.computeCursorPosition(x, y)
   }
 }

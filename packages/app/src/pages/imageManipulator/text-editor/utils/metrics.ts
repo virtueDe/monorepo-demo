@@ -1,3 +1,4 @@
+import { SPACE_NODE_VALUE, ZERO_NODE_VALUE } from "../constant";
 import { FontStyle, INodeMetrics, ITextAttr } from "../types"
 
 export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
@@ -34,19 +35,23 @@ export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
   * 字体文字样式下的行高度: textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
   */
   let width = textMetrics.width
+  let height = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent
   // TODO: 斜体的宽度还需要重新计算
   if (fontStyle === FontStyle.Italic) {
     width = textMetrics.actualBoundingBoxRight + textMetrics.actualBoundingBoxLeft
     // width = textMetrics.width + 2
   }
+  if (text === ZERO_NODE_VALUE) {
+    height = fontSize
+  }
   return {
     width,
-    height: textMetrics.actualBoundingBoxAscent || 0 + textMetrics.actualBoundingBoxDescent || 0,
+    height,
 
-    actualBoundingBoxAscent: textMetrics.actualBoundingBoxAscent || 0,
-    actualBoundingBoxDescent: textMetrics.actualBoundingBoxDescent || 0,
+    actualBoundingBoxAscent: textMetrics.actualBoundingBoxAscent,
+    actualBoundingBoxDescent: textMetrics.actualBoundingBoxDescent,
 
-    fontBoundingBoxAscent: textMetrics.fontBoundingBoxAscent || 0,
-    fontBoundingBoxDescent: textMetrics.fontBoundingBoxDescent || 0,
+    fontBoundingBoxAscent: textMetrics.fontBoundingBoxAscent,
+    fontBoundingBoxDescent: textMetrics.fontBoundingBoxDescent,
   }
 }

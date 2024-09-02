@@ -46,35 +46,26 @@ export class TextEditor {
   }
   public handleMousedown(x: number, y: number) {
     this.core.getPanel.blurPanel()
-    const cursorPoint = {
-      x: 0,
-      y: 0,
-      h: 0
-    }
+    // const cursorPoint = {
+    //   x: 0,
+    //   y: 0,
+    // }
 
     const panel = this.core.getPanel.findPanel(x, y)
     if (panel) {
       panel.focus = true
-
-      // cursorPoint.x
-
     } else {
-
-      const panel = this.core.createPanel({ x, y, w: PANEL_WIDTH, h: PANEL_HEIGHT })
-      this.core.panels.push(panel)
-      cursorPoint.x = panel.x
-      cursorPoint.y = panel.y
-      // cursorPoint.y = y
+      const newPanel = this.core.createPanel({ x, y, w: PANEL_WIDTH, h: PANEL_HEIGHT })
+      this.core.panels.push(newPanel)
     }
+    this.rootCanvas.draw()
+
 
     // 更新光标和输入框的位置
     // 1. 如果是已经有的panel，更新鼠标位置到具体的文字后面
     // 2. 如果是新建输入的，更新鼠标位置到输入框的开头
-    this.interaction.setCursorPosition(cursorPoint.x, cursorPoint.y)
-
+    this.interaction.setCursorPosition(x, y)
     this.interaction.input.focus()
-
-    this.rootCanvas.draw()
   }
   public createTextEditorPanel({ x, y, w, h }: ICreatePanelProps) {
     this.core.createPanel({ x, y, w, h })

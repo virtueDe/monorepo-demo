@@ -1,52 +1,79 @@
-// enum CursorType {
-//   Default = 'default',
-//   Text = 'text',
-
 import { Interaction } from ".";
-// }
+import { LINE_GAP } from "../constant";
+import { IElement } from "../types";
 export class Cursor {
-  // interaction!: Interaction
-
-  // container!: HTMLElement
-  // el: HTMLElement = document.createElement('div')
-  // cursorTimer!: any;
-  // type = CursorType.Default
+  cursorEl!: HTMLElement;
+  private containerEl!: HTMLElement;
+  cursorTimer!: any;
   constructor(private interaction: Interaction) {
-
-
-    // container: HTMLElement
-
-    // this.container = container
-    // const style = {
-    //   display: 'none',
-    //   position: 'absolute',
-    //   width: '1px',
-    //   backgroundColor: '#fff',
-    // }
-    // Object.assign(this.el.style, style)
-    // this.container.appendChild(this.el)
+    this.cursorEl = document.createElement('div')
+    const style = {
+      display: 'none',
+      position: 'absolute',
+      width: '1px',
+      top: '0px',
+      left: '0px',
+      backgroundColor: '#fff',
+    } as const;
+    Object.assign(this.cursorEl.style, style)
+    this.containerEl = this.interaction.getTextEditor().getRootCanvas.container
+    this.containerEl.appendChild(this.cursorEl)
   }
-  // showCursor(x: number, y: number, height: number) {
-  //   const style = {
-  //     left: `${x}px`,
-  //     top: `${y}px`,
-  //     height: `${height}px`,
-  //     display: 'block',
-  //   }
-  //   Object.assign(this.el.style, style)
-
-  //   this.blinkCursor('0')
-  // }
-  // // 光标闪烁
+  drawCursor(x: number, y: number, height: number) {
+    const style = {
+      left: `${x}px`,
+      top: `${y}px`,
+      height: `${height}px`,
+      display: 'block',
+    }
+    Object.assign(this.cursorEl.style, style)
+    // this.blinkCursor('0')
+  }
+  // 光标闪烁
   // blinkCursor(opacity: string) {
   //   clearTimeout(this.cursorTimer)
   //   this.cursorTimer = setTimeout(() => {
-  //     this.el.style.opacity = opacity
+  //     this.cursorEl.style.opacity = opacity
   //     this.blinkCursor(opacity === '0' ? '1' : '0')
   //   }, 600)
   // }
-  // hideCursor() {
-  //   clearTimeout(this.cursorTimer)
-  //   this.el.style.display = 'none'
-  // }
+  hideCursor() {
+    // clearTimeout(this.cursorTimer)
+    this.cursorEl.style.display = 'none'
+  }
+  computeCursorPosition(x: number, y: number) {
+    const panel = this.interaction.getTextEditor().getCore().focusPanel
+    if (!panel) {
+      return
+    }
+    const { children: elements = [], contentDrawPoint = [] } = panel
+
+    let closestElement: IElement | null = null;
+    for (let index = 0; index < elements.length; index++) {
+      const element = elements[index];
+      const { position } = element;
+
+      if (
+        x >= position.x &&
+        x <= position.x + position.w &&
+        y >= position.y &&
+        y <= position.y + position.h
+      ) {
+        // 计算 x 坐标是否超过元素的一半
+        const halfWidth = position.w / 2;
+        if (x <= position.x + halfWidth) {
+          closestElement = elements[index - 1] || null;
+        } else {
+          closestElement = element;
+        }
+        break;
+      }
+    }
+    if (!closestElement) {
+      closestElement = elements[elements.length - 1]
+    }
+    console.log('closestElement', closestElement);
+
+    this.drawCursor(closestElement.position.x + closestElement.position.w, closestElement.position.y + LINE_GAP, closestElement.position.h * 1.2)
+  }
 }

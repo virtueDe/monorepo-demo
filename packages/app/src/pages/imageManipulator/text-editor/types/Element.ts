@@ -1,6 +1,4 @@
-import { ITextAttr } from "./ITextEditor";
-
-
+import { IPointBase, ITextAttr } from "./ITextEditor";
 
 export enum TextNodeType {
   SpaceNode = 'spaceNode',
@@ -14,12 +12,6 @@ export enum ElementType {
   FormulaNode = 'formulaNode',
   OtherNode = 'otherNode',
 }
-export interface IElement {
-  type: ElementType | TextNodeType;
-  id: string;
-  rowIndex: number;
-}
-
 export interface INodeMetrics {
   width: number;
   height: number;
@@ -27,6 +19,12 @@ export interface INodeMetrics {
   actualBoundingBoxDescent: number;
   fontBoundingBoxAscent: number;
   fontBoundingBoxDescent: number;
+}
+export interface IElement {
+  type: ElementType | TextNodeType;
+  id: string;
+  rowIndex: number;
+  position: IPointBase
 }
 
 // 文本节点基类
