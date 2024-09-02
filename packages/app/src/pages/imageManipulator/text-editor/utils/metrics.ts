@@ -1,4 +1,4 @@
-import { INodeMetrics, ITextAttr } from "../types"
+import { FontStyle, INodeMetrics, ITextAttr } from "../types"
 
 export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
   /** ctx.textBaseline 默认值是 alphabetic */
@@ -33,10 +33,14 @@ export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
   * 实际高度 height: textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent
   * 字体文字样式下的行高度: textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
   */
-
+  let width = textMetrics.width
+  // TODO: 斜体的宽度还需要重新计算
+  if (fontStyle === FontStyle.Italic) {
+    width = textMetrics.actualBoundingBoxRight + textMetrics.actualBoundingBoxLeft
+    // width = textMetrics.width + 2
+  }
   return {
-    // TODO: 斜体需要用到实际宽度
-    width: textMetrics.width,
+    width,
     height: textMetrics.actualBoundingBoxAscent || 0 + textMetrics.actualBoundingBoxDescent || 0,
 
     actualBoundingBoxAscent: textMetrics.actualBoundingBoxAscent || 0,

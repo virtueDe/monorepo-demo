@@ -4,3 +4,5 @@ export const BREAK_NODE_VALUE = '\r\n';
 
 // 下划线距离文本底线的距离
 export const UNDERLINE_GAP = 2;
+
+export const LINE_GAP = 5;
