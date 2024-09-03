@@ -25,6 +25,7 @@ export interface IElement {
   id: string;
   rowIndex: number;
   position: IPointBase
+  index: number
 }
 
 // 文本节点基类

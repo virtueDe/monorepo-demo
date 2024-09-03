@@ -321,9 +321,7 @@ export class CanvasImageManipulator {
       }
     } else if (this.canvasModel === CanvasModel.Text) {
       this.textEditor.handleMousedown(mouseX, mouseY)
-      // this.textEditor.createTextEditorPanel({ x: mouseX, y: mouseY, w: 200, h: 100 })
     }
-
     // console.log(this.cropRect.InCropModule);
   }
   private handleMousemove(event: MouseEvent) {
@@ -389,6 +387,8 @@ export class CanvasImageManipulator {
         this.cropRect.height = Math.min(Math.max(50, this.cropRect.height), this.image.height);
       } else if (this.canvasModel === CanvasModel.DrawLine) {
         this.line.lineData[this.line.lineData.length - 1].data.push({ x: mouseX, y: mouseY })
+      } else if (this.canvasModel === CanvasModel.Text) {
+        this.textEditor.handleMousemove(mouseX, mouseY)
       } else {
         this.image.x += dx;
         this.image.y += dy;

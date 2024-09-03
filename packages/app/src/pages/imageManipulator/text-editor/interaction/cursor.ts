@@ -5,6 +5,10 @@ export class Cursor {
   cursorEl!: HTMLElement;
   private containerEl!: HTMLElement;
   cursorTimer!: any;
+  // 光标所在元素索引
+  cursorIndex: number = 0;
+  // 光标所在元素
+  cursorInElement!: IElement | undefined;
   constructor(private interaction: Interaction) {
     this.cursorEl = document.createElement('div')
     const style = {
@@ -42,13 +46,15 @@ export class Cursor {
     this.cursorEl.style.display = 'none'
   }
   computeCursorPosition(x: number, y: number) {
+    // debugger
+    // TODO: 光标这里还要优化，光标在行的前面后面
     const panel = this.interaction.getTextEditor().getCore().focusPanel
     if (!panel) {
       return
     }
     const { children: elements = [], contentDrawPoint = [] } = panel
 
-    let closestElement: IElement | null = null;
+
     for (let index = 0; index < elements.length; index++) {
       const element = elements[index];
       const { position } = element;
@@ -62,18 +68,36 @@ export class Cursor {
         // 计算 x 坐标是否超过元素的一半
         const halfWidth = position.w / 2;
         if (x <= position.x + halfWidth) {
-          closestElement = elements[index - 1] || null;
+          this.cursorInElement = elements[index - 1] || null;
+          this.cursorIndex = this.cursorInElement ? this.cursorInElement.index : 0
         } else {
-          closestElement = element;
+          this.cursorInElement = element;
+          this.cursorIndex = this.cursorInElement.index;
         }
         break;
       }
     }
-    if (!closestElement) {
-      closestElement = elements[elements.length - 1]
+    if (!this.cursorInElement) {
+      this.cursorInElement = elements[elements.length - 1]
+      this.cursorIndex = this.cursorInElement.index;
     }
-    console.log('closestElement', closestElement);
-
-    this.drawCursor(closestElement.position.x + closestElement.position.w, closestElement.position.y + LINE_GAP, closestElement.position.h * 1.2)
+    console.log('closestElement', this.cursorInElement);
+    console.log('cursorIndex', this.cursorIndex);
+    this.drawCursor(this.cursorInElement.position.x + this.cursorInElement.position.w, this.cursorInElement.position.y + LINE_GAP, this.cursorInElement.position.h * 1.2)
+  }
+  updateCursorPosition(index?: number) {
+    const panel = this.interaction.getTextEditor().getCore().focusPanel
+    if (!panel) {
+      return
+    }
+    const { children: elements = [] } = panel
+    if (!index) {
+      this.cursorInElement = elements[elements.length - 1]
+      this.cursorIndex = this.cursorInElement.index
+    } else {
+      this.cursorIndex = index
+      this.cursorInElement = elements[this.cursorIndex]
+    }
+    this.drawCursor(this.cursorInElement.position.x + this.cursorInElement.position.w, this.cursorInElement.position.y + LINE_GAP, this.cursorInElement.position.h * 1.2)
   }
 }

@@ -28,8 +28,8 @@ export class Core {
     this.ctx = this.textEditor.getRootCanvas.ctx
     this.panel = new Panel(this)
     this.textNode = new TextNode(this, this.textEditor.getOptions().textAttr)
-    const _panel: any = [{ "x": 218, "y": 176, "w": 200, "h": 200, "focus": true, "id": "editor-0487-9e50-c95a", "bounding": { "borderWidth": 2, "borderColor": "#ffffff", "gap": 20 }, "contentDrawPoint": [238, 196, 160, 160], "children": [{ "rowIndex": 0, "type": "zeroNode", "value": "​", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-567f-27d1-7196", "metrics": { "width": 0, "height": 30, "actualBoundingBoxAscent": 0, "actualBoundingBoxDescent": 0, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 238, "y": 196, "w": 0, "h": 30 } }, { "rowIndex": 0, "type": "textNode", "value": "啊", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-7702-672a-e3c9", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 24, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 238, "y": 196, "w": 30, "h": 29 } }, { "rowIndex": 0, "type": "textNode", "value": "实", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-a062-4cbe-7f07", "metrics": { "width": 30, "height": 30, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 268, "y": 196, "w": 30, "h": 30 } }, { "rowIndex": 0, "type": "textNode", "value": "打", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-6dfe-bbfc-d847", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 298, "y": 196, "w": 30, "h": 29 } }, { "rowIndex": 0, "type": "textNode", "value": "实", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-ec38-fccc-717b", "metrics": { "width": 30, "height": 30, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 328, "y": 196, "w": 30, "h": 30 } }, { "rowIndex": 0, "type": "textNode", "value": "的", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-f757-b35d-0ef6", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 358, "y": 196, "w": 30, "h": 29 } }, { "rowIndex": 1, "type": "textNode", "value": "打", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-eb14-4c4a-eeb1", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 238, "y": 236, "w": 30, "h": 29 } }, { "rowIndex": 1, "type": "textNode", "value": "算", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-031b-25ab-29dd", "metrics": { "width": 30, "height": 30, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 268, "y": 236, "w": 30, "h": 30 } }, { "rowIndex": 1, "type": "textNode", "value": "撒", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-41ca-f728-eea1", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 298, "y": 236, "w": 30, "h": 29 } }, { "rowIndex": 1, "type": "textNode", "value": "打", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-a286-3d5e-ba8b", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 328, "y": 236, "w": 30, "h": 29 } }, { "rowIndex": 1, "type": "textNode", "value": "算", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-07d2-ea3e-866d", "metrics": { "width": 30, "height": 30, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 358, "y": 236, "w": 30, "h": 30 } }, { "rowIndex": 1, "type": "textNode", "value": " ", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-3347-c8ab-d902", "metrics": { "width": 8.876953125, "height": 0, "actualBoundingBoxAscent": 0, "actualBoundingBoxDescent": 0, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 388, "y": 236, "w": 8.876953125, "h": 0 } }, { "rowIndex": 2, "type": "textNode", "value": "阿", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-7abe-e9b4-20d4", "metrics": { "width": 30, "height": 27, "actualBoundingBoxAscent": 23, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 238, "y": 275, "w": 30, "h": 27 } }, { "rowIndex": 2, "type": "textNode", "value": "萨", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-820f-76f5-c51e", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 268, "y": 275, "w": 30, "h": 29 } }, { "rowIndex": 2, "type": "textNode", "value": "撒", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-243b-47b4-a022", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 298, "y": 275, "w": 30, "h": 29 } }, { "rowIndex": 2, "type": "textNode", "value": "撒", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-fa7f-05fe-9e04", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 328, "y": 275, "w": 30, "h": 29 } }, { "rowIndex": 2, "type": "textNode", "value": "撒", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-be1d-5e12-9fad", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 358, "y": 275, "w": 30, "h": 29 } }, { "rowIndex": 0, "type": "textNode", "value": "啊", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-32ad-a965-794c", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 24, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 0, "y": 0, "w": 0, "h": 0 } }] }]
-    this.panels = _panel
+    // const _panel: any = [{ "x": 218, "y": 176, "w": 200, "h": 200, "focus": true, "id": "editor-0487-9e50-c95a", "bounding": { "borderWidth": 2, "borderColor": "#ffffff", "gap": 20 }, "contentDrawPoint": [238, 196, 160, 160], "children": [{ "rowIndex": 0, "type": "zeroNode", "value": "​", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-567f-27d1-7196", "metrics": { "width": 0, "height": 30, "actualBoundingBoxAscent": 0, "actualBoundingBoxDescent": 0, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 238, "y": 196, "w": 0, "h": 30 } }, { "rowIndex": 0, "type": "textNode", "value": "啊", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-7702-672a-e3c9", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 24, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 238, "y": 196, "w": 30, "h": 29 } }, { "rowIndex": 0, "type": "textNode", "value": "实", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-a062-4cbe-7f07", "metrics": { "width": 30, "height": 30, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 268, "y": 196, "w": 30, "h": 30 } }, { "rowIndex": 0, "type": "textNode", "value": "打", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-6dfe-bbfc-d847", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 298, "y": 196, "w": 30, "h": 29 } }, { "rowIndex": 0, "type": "textNode", "value": "实", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-ec38-fccc-717b", "metrics": { "width": 30, "height": 30, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 328, "y": 196, "w": 30, "h": 30 } }, { "rowIndex": 0, "type": "textNode", "value": "的", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-f757-b35d-0ef6", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 358, "y": 196, "w": 30, "h": 29 } }, { "rowIndex": 1, "type": "textNode", "value": "打", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-eb14-4c4a-eeb1", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 238, "y": 236, "w": 30, "h": 29 } }, { "rowIndex": 1, "type": "textNode", "value": "算", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-031b-25ab-29dd", "metrics": { "width": 30, "height": 30, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 268, "y": 236, "w": 30, "h": 30 } }, { "rowIndex": 1, "type": "textNode", "value": "撒", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-41ca-f728-eea1", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 298, "y": 236, "w": 30, "h": 29 } }, { "rowIndex": 1, "type": "textNode", "value": "打", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-a286-3d5e-ba8b", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 328, "y": 236, "w": 30, "h": 29 } }, { "rowIndex": 1, "type": "textNode", "value": "算", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-07d2-ea3e-866d", "metrics": { "width": 30, "height": 30, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 358, "y": 236, "w": 30, "h": 30 } }, { "rowIndex": 1, "type": "textNode", "value": " ", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-3347-c8ab-d902", "metrics": { "width": 8.876953125, "height": 0, "actualBoundingBoxAscent": 0, "actualBoundingBoxDescent": 0, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 388, "y": 236, "w": 8.876953125, "h": 0 } }, { "rowIndex": 2, "type": "textNode", "value": "阿", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-7abe-e9b4-20d4", "metrics": { "width": 30, "height": 27, "actualBoundingBoxAscent": 23, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 238, "y": 275, "w": 30, "h": 27 } }, { "rowIndex": 2, "type": "textNode", "value": "萨", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-820f-76f5-c51e", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 268, "y": 275, "w": 30, "h": 29 } }, { "rowIndex": 2, "type": "textNode", "value": "撒", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-243b-47b4-a022", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 298, "y": 275, "w": 30, "h": 29 } }, { "rowIndex": 2, "type": "textNode", "value": "撒", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-fa7f-05fe-9e04", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 328, "y": 275, "w": 30, "h": 29 } }, { "rowIndex": 2, "type": "textNode", "value": "撒", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-be1d-5e12-9fad", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 25, "actualBoundingBoxDescent": 4, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 358, "y": 275, "w": 30, "h": 29 } }, { "rowIndex": 0, "type": "textNode", "value": "啊", "attr": { "fontFamily": "sans-serif", "fontSize": 30, "fontColor": "#ff0000", "fontWeight": "normal", "fontStyle": "normal", "fontUnderline": "normal", "fontLineThrough": "normal" }, "id": "editor-32ad-a965-794c", "metrics": { "width": 30, "height": 29, "actualBoundingBoxAscent": 24, "actualBoundingBoxDescent": 5, "fontBoundingBoxAscent": 32, "fontBoundingBoxDescent": 8 }, "position": { "x": 0, "y": 0, "w": 0, "h": 0 } }] }]
+    // this.panels = _panel
   }
   get interaction() {
     return this.textEditor.getInteraction
@@ -50,7 +50,7 @@ export class Core {
   }
   public draw() {
     console.time('draw')
-    console.log('draw', JSON.stringify(this.panels))
+    // console.log('draw', JSON.stringify(this.panels))
     this.panels.forEach(panel => {
       const { focus, bounding, x, y, w, h, children, contentDrawPoint } = panel
 
@@ -65,10 +65,10 @@ export class Core {
           borderWidth
         })
 
-        // 绘制区域
-        this.interaction.ctx.strokeStyle = 'blue'
-        this.interaction.ctx.lineWidth = 2
-        this.interaction.ctx.strokeRect(contentDrawPoint[0], contentDrawPoint[1], contentDrawPoint[2], contentDrawPoint[3]);
+        // // 绘制区域
+        // this.interaction.ctx.strokeStyle = 'blue'
+        // this.interaction.ctx.lineWidth = 2
+        // this.interaction.ctx.strokeRect(contentDrawPoint[0], contentDrawPoint[1], contentDrawPoint[2], contentDrawPoint[3]);
       }
 
       this.computeRowDrawPoint(panel)
@@ -78,7 +78,6 @@ export class Core {
     console.timeEnd('draw')
   }
   computeRowDrawPoint(panel: IPanel) {
-    // TODO：这里还需要再优化，英文和数字行有问题行高
     const rows: IRow[] = []
     const { contentDrawPoint: drawRange, children: elements, id } = panel
     let [drawRangeX, drawRangeY, drawRangeW, drawRangeH] = drawRange
@@ -87,7 +86,6 @@ export class Core {
     // 是否重新计算Y轴
     let againComputeY = true
     let rowIndex = 0;
-    let rowWidth = 0;
 
     let y = drawRangeY
 
@@ -107,8 +105,6 @@ export class Core {
             height,
             actualBoundingBoxAscent,
             actualBoundingBoxDescent,
-            fontBoundingBoxAscent,
-            fontBoundingBoxDescent
           }
         } = element
 
@@ -116,8 +112,6 @@ export class Core {
           againComputeY = true
         }
         if (againComputeY) {
-          rowWidth = 0;
-
           againComputeY = false
           residualWidth = drawRangeW
           if (rowIndex != 0) {
@@ -160,7 +154,7 @@ export class Core {
     console.log(elements);
   }
   drawElements(panel: IPanel) {
-    const { contentDrawPoint: drawRange, children: elements, id } = panel
+    const { contentDrawPoint: drawRange, children, id } = panel
     const rows = this.rowDrawBaselineMap.get(id) as unknown as IRow[]
     let [drawRangeX, drawRangeY, drawRangeW, drawRangeH] = drawRange
 
@@ -175,17 +169,18 @@ export class Core {
     let drawY = drawRangeY
     let drawX = drawRangeX
 
-    this.ctx.save()
-    rows.forEach((row, index) => {
-      this.ctx.fillStyle = index % 2 === 0 ? 'red' : 'blue';
-      this.ctx.globalAlpha = 0.6; // 设置透明度
-      this.ctx.fillRect(row.x, row.y, row.w, row.h);
-    })
-    this.ctx.restore()
+    // this.ctx.save()
+    // rows.forEach((row, index) => {
+    //   this.ctx.fillStyle = index % 2 === 0 ? 'red' : 'blue';
+    //   this.ctx.globalAlpha = 0.6; // 设置透明度
+    //   this.ctx.fillRect(row.x, row.y, row.w, row.h);
+    // })
+    // this.ctx.restore()
 
 
-    while (index < elements.length) {
-      const element = elements[index]
+    while (index < children.length) {
+      const element = children[index]
+      element.index = index
 
       if (element.type === TextNodeType.BreakNode
         || element.type === TextNodeType.SpaceNode
@@ -193,17 +188,17 @@ export class Core {
         || element.type === TextNodeType.TextNode
       ) {
 
-        const { value,
+        let { value,
           attr: { fontFamily, fontSize, fontColor, fontWeight, fontStyle, fontUnderline, fontLineThrough },
           metrics: {
             width,
             height,
-            actualBoundingBoxAscent,
-            actualBoundingBoxDescent,
-            fontBoundingBoxAscent,
-            fontBoundingBoxDescent
+            // actualBoundingBoxAscent,
+            // actualBoundingBoxDescent,
+            // fontBoundingBoxAscent,
+            // fontBoundingBoxDescent
           },
-          position
+          position,
         } = element
 
         if (residualWidth < width) {
@@ -243,6 +238,7 @@ export class Core {
           this.ctx.stroke();
         }
 
+        // 设置当前元素的一些属性
         position.x = drawX
         // position.y = drawY - rows[element.rowIndex].ascent - LINE_GAP
         position.y = rows[element.rowIndex].y
@@ -253,13 +249,13 @@ export class Core {
         this.ctx.fillStyle = fontColor;
         this.ctx.fillText(value, drawX, drawY);
 
-        // 绘制基线
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = 'blue';
-        this.ctx.beginPath();
-        this.ctx.moveTo(drawX, drawY);
-        this.ctx.lineTo(drawX + width, drawY);
-        this.ctx.stroke();
+        // // 绘制基线
+        // this.ctx.lineWidth = 1;
+        // this.ctx.strokeStyle = 'blue';
+        // this.ctx.beginPath();
+        // this.ctx.moveTo(drawX, drawY);
+        // this.ctx.lineTo(drawX + width, drawY);
+        // this.ctx.stroke();
 
         drawX += width
         residualWidth -= width
@@ -281,8 +277,8 @@ export class Core {
       const textNode = this.textNode.createTextNode(TextNodeType.TextNode, char, this.textNode.textAttr)
       return textNode
     })
-
-    this.focusPanel?.children.push(...textNodeList)
+    this.focusPanel?.children.splice(this.interaction.cursor.cursorIndex + 1, 0, ...textNodeList)
     this.textEditor.getRootCanvas.draw()
+    this.interaction.cursor.updateCursorPosition(this.interaction.cursor.cursorIndex + textNodeList.length)
   }
 }
