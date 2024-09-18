@@ -532,13 +532,6 @@ export class CanvasImageManipulator {
     this.drawLine()
 
     this.textEditor.draw()
-    // this.drawText()
-
-    // this.textController.setCursor(0, 0, 14)
-    // this.ctx.font = `${this.text.textAttribute.fontSize}px ${this.text.textAttribute.fontFamily}`;
-    // // this.ctx.textAlign = 'center';
-    // this.ctx.fillStyle = 'red';
-    // this.ctx.fillText('测', 0, 14);
   }
 
   drawText() {
@@ -891,7 +884,6 @@ export class CanvasImageManipulator {
         this.initDrawLine()
         break
       case CanvasModel.Text:
-        // this.initDrawLine()
         break
       default:
         break

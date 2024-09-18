@@ -281,4 +281,10 @@ export class Core {
     this.textEditor.getRootCanvas.draw()
     this.interaction.cursor.updateCursorPosition(this.interaction.cursor.cursorIndex + textNodeList.length)
   }
+  insertNode(Elements: Elements) {
+
+  }
+  deleteNode() {
+
+  }
 }
