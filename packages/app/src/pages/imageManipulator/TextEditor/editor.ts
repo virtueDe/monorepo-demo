@@ -67,6 +67,6 @@ export class TextEditor {
   draw() {
     this.core.draw()
     // this.interaction.cursor.updateCursorPosition()
-    console.log('this.core.panels', this.core.panels);
+    // console.log('this.core.panels', this.core.panels);
   }
 }

@@ -49,7 +49,7 @@ export class Core {
     return panel
   }
   public draw() {
-    console.time('draw')
+    console.time('textDraw')
     // console.log('draw', JSON.stringify(this.panels))
     this.panels.forEach(panel => {
       const { focus, bounding, x, y, w, h, children, contentDrawPoint } = panel
@@ -75,7 +75,7 @@ export class Core {
 
       this.drawElements(panel)
     })
-    console.timeEnd('draw')
+    console.timeEnd('textDraw')
   }
   computeRowDrawPoint(panel: IPanel) {
     const rows: IRow[] = []

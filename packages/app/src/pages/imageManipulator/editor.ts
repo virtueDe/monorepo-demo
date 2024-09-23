@@ -1,4 +1,4 @@
-import { TextEditor, ITextAttr } from './text-editor';
+import { TextEditor, ITextAttr } from './TextEditor';
 import { CropRect, DrawType, FilterType, FontLineThrough, FontUnderline, Image, ImageStyleKey, Line, MouseInCropModule, TextAttribute, TextGraphs } from './graphs/index'
 import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform, getNextPixel, getNextRowPixel, getPreviousPixel, isLastRow, isLastPixelInRow, getPreviousRowPixel, applyConvolution } from './utils';
 
@@ -16,7 +16,7 @@ export class CanvasImageManipulator {
 
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  private dpi: number = 1;
+  dpi: number = 1;
   canvasModel: CanvasModel = CanvasModel.Preview
 
   viewportWidth: number = 0;
@@ -29,7 +29,6 @@ export class CanvasImageManipulator {
     base: 1,
   }
 
-
   mouse = {
     lastX: 0,
     lastY: 0,
@@ -37,25 +36,13 @@ export class CanvasImageManipulator {
     dragging: false,
   }
 
-
   image: Image;
   cropRect: CropRect
   line: Line
-  // textEditor: TextGraphs
   textEditor: TextEditor
 
-  ro: ResizeObserver
+  // ro: ResizeObserver
 
-  // private textAttribute = {
-  //   fontSize: 50,
-  //   data: 'hello Canvas',
-  //   fontFamily: 'sans-serif',
-  //   // font: '16px sans-serif',
-  //   fillStyle: 'blue',
-  //   textAlign: 'center',
-  //   X: 150,
-  //   y: 150
-  // }
   constructor(canvasId: string) {
     this.dpi = window.devicePixelRatio || 1;
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -80,21 +67,23 @@ export class CanvasImageManipulator {
     this.ctx = this.canvas.getContext('2d')!;
     this.ctx.scale(this.dpi, this.dpi)
 
-    this.image = new Image();
+    this.image = new Image(this);
     this.cropRect = new CropRect()
     this.line = new Line()
-    // this.textEditor = new TextGraphs()
     this.textEditor = new TextEditor(this)
 
-    this.ro = new ResizeObserver(entries => {
-      entries.forEach(entry => {
-        this.handleViewportResize(entry.contentRect.width, entry.contentRect.height)
-      });
-    });
+    // this.ro = new ResizeObserver(entries => {
+    //   entries.forEach(entry => {
+    //     this.handleViewportResize(entry.contentRect.width, entry.contentRect.height)
+    //   });
+    // });
 
     this.initEventListeners();
 
     // this.ro.observe(this.canvas.parentElement as HTMLElement);
+  }
+  get scale() {
+    return this.canvasScale.value
   }
   public loadImage(src: string) {
     if (!src) return
@@ -102,7 +91,7 @@ export class CanvasImageManipulator {
     this.image.imageElement.crossOrigin = 'anonymous'
 
     this.image.imageElement.onload = () => {
-      this.onResetImage()
+      this.computeImage()
       this.draw()
     };
   }
@@ -133,10 +122,10 @@ export class CanvasImageManipulator {
     }
   }
   public changeImageStyled(data: Record<ImageStyleKey, number>) {
-    this.image.styleSettings.brightness = rangeTransform(-100, 100, -0.8, 1)(data.brightness)
-    this.image.styleSettings.contrast = rangeTransform(-100, 100, 0, 2)(data.contrast)
-    this.image.styleSettings.exposure = rangeTransform(-100, 100, -100, 100)(data.exposure)
-    this.image.styleSettings.saturation = rangeTransform(-100, 100, 0, 2)(data.saturation)
+    this.image.styled.brightness = rangeTransform(-100, 100, -0.8, 1)(data.brightness)
+    this.image.styled.contrast = rangeTransform(-100, 100, 0, 2)(data.contrast)
+    this.image.styled.exposure = rangeTransform(-100, 100, -100, 100)(data.exposure)
+    this.image.styled.saturation = rangeTransform(-100, 100, 0, 2)(data.saturation)
     this.draw()
   }
   changeFilter(value: FilterType) {
@@ -164,7 +153,7 @@ export class CanvasImageManipulator {
     this.image.height = this.cropRect.height
     this.draw()
   }
-  private onResetImage() {
+  private computeImage() {
     const canvasAspect = this.viewportWidth / this.viewportHeight;
     const imageAspect = this.image.imageElement.width / this.image.imageElement.height;
 
@@ -187,6 +176,9 @@ export class CanvasImageManipulator {
     this.image.sy = 0
     this.image.sw = this.image.imageElement.width
     this.image.sh = this.image.imageElement.height
+
+    this.image.cache.width = this.image.width
+    this.image.cache.height = this.image.height
   }
 
   private initEventListeners() {
@@ -480,27 +472,9 @@ export class CanvasImageManipulator {
 
     this.canvasScale.value = newScale;
 
-    // // 计算新的宽度和高度
+    // 计算新的宽度和高度
     this.image.width *= zoom;
     this.image.height *= zoom;
-
-    // this.cutWidth = this.cutWidth * zoom;
-    // this.cutHeight = this.cutHeight * zoom;
-
-    // this.lineWidth *= zoom
-
-
-    // for (let index = 0; index < this.pathData.length; index++) {
-    //   const point = this.pathData[index];
-    //   const newX = (point.x - mouseX) * zoom + mouseX;
-    //   const newY = (point.y - mouseY) * zoom + mouseY;
-    //   point.x = newX
-    //   point.y = newY
-    // }
-
-    // this.textAttribute.X = (this.textAttribute.X - mouseX) * zoom + mouseX
-    // this.textAttribute.y = (this.textAttribute.y - mouseY) * zoom + mouseY
-    // this.textAttribute.fontSize = this.textAttribute.fontSize * zoom
 
     this.draw()
   }
@@ -509,7 +483,7 @@ export class CanvasImageManipulator {
     this.canvas.removeEventListener("mousemove", this.handleMousemove);
     this.canvas.removeEventListener("mouseup", this.handleMouseup);
     this.canvas.removeEventListener("wheel", this.handleWheel);
-    this.ro.disconnect();
+    // this.ro.disconnect();
   }
   private handleMouseup() {
     this.mouse.dragging = false;
@@ -521,89 +495,26 @@ export class CanvasImageManipulator {
   }
 
   draw() {
+    // TODO: 渲染层级有问题
+    console.time('draw')
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     if (this.canvasModel === CanvasModel.Crop) {
       this.drawCropCover()
-      this.drawCropRect()
     }
 
-    this.drawImage()
+    this.image.draw()
+
+
+    if (this.canvasModel === CanvasModel.Crop) {
+      this.drawCropRect()
+    }
     this.drawLine()
 
     this.textEditor.draw()
+    console.timeEnd('draw')
   }
 
-  drawText() {
-    // this.ctx.save();
-    // for (let index = 0; index < this.text.textData.length; index++) {
-    //   const {
-    //     boxData,
-    //     textProps
-    //   } = this.text.textData[index];
-
-    //   if (this.textController.isActive) {
-    //     this.textController.drawTextBox(boxData)
-    //   }
-
-    //   for (let propsIndex = 0; propsIndex < textProps.length; propsIndex++) {
-    //     // console.log(123, textProps[propsIndex]);
-
-    //     const { attribute, x, y, data, w, h, ascent } = textProps[propsIndex]
-    //     const {
-    //       fontSize,
-    //       fontFamily,
-    //       fontColor,
-    //       fontWeight,
-    //       fontStyle,
-    //       fontUnderline,
-    //       fontLineThrough
-    //     } = attribute;
-
-    //     console.log(123, w, h, x, y,);
-
-    //     // 绘制下划线
-    //     if (fontUnderline === FontUnderline.Underline) {
-    //       this.ctx.lineWidth = 1;
-    //       this.ctx.strokeStyle = fontColor;
-    //       this.ctx.beginPath();
-    //       // 5 是下划线与文本底部的距离
-    //       this.ctx.moveTo(x, y + 5);
-    //       this.ctx.lineTo(x + w, y + 5);
-    //       this.ctx.stroke();
-    //     }
-
-    //     // 绘制删除线
-    //     if (fontLineThrough === FontLineThrough.LineThrough) {
-    //       this.ctx.lineWidth = 1;
-    //       this.ctx.strokeStyle = fontColor;
-    //       this.ctx.beginPath();
-    //       // TODO: 文字基线Y有问题计算
-    //       this.ctx.moveTo(x, y - 10); // -2 是删除线与文本顶部的距离
-    //       this.ctx.lineTo(x + w, y - 10);
-    //       this.ctx.stroke();
-    //     }
-
-    //     // this.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
-    //     this.ctx.font = `${fontWeight} ${fontStyle} ${fontSize}px ${fontFamily}`;
-    //     // console.log(fontSize, this.ctx.measureText(data).width);
-    //     this.ctx.fillStyle = fontColor;
-    //     this.ctx.fillText(data, x, y);
-    //   }
-    // }
-    // this.ctx.restore();
-  }
-
-  // // 缩放中心点，这里以画布中心为例
-  // const centerX = canvas.width / 2;
-  // const centerY = canvas.height / 2;
-
-  // // 缩放点
-  // const scaledPoints = points.map(point => {
-  //     const newX = (point.x - centerX) * zoomLevel + centerX;
-  //     const newY = (point.y - centerY) * zoomLevel + centerY;
-  //     return { x: newX, y: newY };
-  // });
 
   drawLine() {
     this.ctx.save()
@@ -694,143 +605,144 @@ export class CanvasImageManipulator {
     this.ctx.restore()
   }
   private drawImage() {
-    this.ctx.save()
-    this.ctx.globalCompositeOperation = "destination-over"
-    // 中心点
-    this.ctx.translate(this.image.x + this.image.width / 2, this.image.y + this.image.height / 2);
-    // 翻转
-    this.ctx.scale(this.image.flip.x, this.image.flip.y);
-    // 旋转
-    this.ctx.rotate(this.image.angle * Math.PI / 180);
-    // 渲染
-    this.ctx.drawImage(this.image.imageElement, this.image.sx, this.image.sy, this.image.sw, this.image.sh, -this.image.width / 2, -this.image.height / 2, this.image.width, this.image.height);
+    // this.image.width = this.image.imageElement.width * this.canvasScale.value;
+    // this.image.height = this.image.imageElement.height * this.canvasScale.value;
 
-    // TODO: 优化渲染触发逻辑
-    // (this.canvasModel === CanvasModel.Styled || this.canvasModel === CanvasModel.Filter)
-    // &&
-    if (
-      this.image.isStyleSettings()
-    ) {
+    // this.ctx.save()
+    // this.ctx.globalCompositeOperation = "destination-over"
+    // // 中心点
+    // this.ctx.translate(this.image.x + this.image.width / 2, this.image.y + this.image.height / 2);
+    // // 翻转
+    // this.ctx.scale(this.image.flip.x, this.image.flip.y);
+    // // 旋转
+    // this.ctx.rotate(this.image.angle * Math.PI / 180);
+    // // 渲染
+    // this.ctx.drawImage(this.image.imageElement, this.image.sx, this.image.sy, this.image.sw, this.image.sh, -this.image.width / 2, -this.image.height / 2, this.image.width, this.image.height);
 
-      const { brightness, contrast, exposure, saturation } = this.image.styleSettings
-      const imageData = this.ctx.getImageData(this.image.x * this.dpi, this.image.y * this.dpi, this.image.width * this.dpi, this.image.height * this.dpi)
+    // // TODO: 优化渲染触发逻辑
+    // if (
+    //   this.image.isStyleSettings()
+    // ) {
 
-      console.time();
+    //   const { brightness, contrast, exposure, saturation } = this.image.styleSettings
+    //   const imageData = this.ctx.getImageData(this.image.x * this.dpi, this.image.y * this.dpi, this.image.width * this.dpi, this.image.height * this.dpi)
 
-      // 遍历每个像素，调整数值
-      for (let i = 0; i < imageData.data.length; i += 4) {
+    //   console.time();
 
-        let r = imageData.data[i];
-        let g = imageData.data[i + 1];
-        let b = imageData.data[i + 2];
-        let a = imageData.data[i + 3];
+    //   // 遍历每个像素，调整数值
+    //   for (let i = 0; i < imageData.data.length; i += 4) {
 
-        const nextPixel = getNextPixel(imageData, i);
-        const previousPixel = getPreviousPixel(imageData, i);
-        const nextRowPixel = getNextRowPixel(imageData, i, imageData.width);
-        const PreviousRowPixel = getPreviousRowPixel(imageData, i, imageData.width);
-        const isLastRowPixel = isLastRow(i, imageData.width, imageData.height);
-        const isCurRowLastPixel = isLastPixelInRow(i, imageData.width);
-        // console.log({ r, g, b, a }, nextPixel, previousPixel, nextRowPixel, isLastRowPixel, isCurRowLastPixel);
+    //     let r = imageData.data[i];
+    //     let g = imageData.data[i + 1];
+    //     let b = imageData.data[i + 2];
+    //     let a = imageData.data[i + 3];
 
-        // 亮度
-        r = Math.min(r * (1 + brightness), 255);
-        g = Math.min(g * (1 + brightness), 255);
-        b = Math.min(b * (1 + brightness), 255);
+    //     const nextPixel = getNextPixel(imageData, i);
+    //     const previousPixel = getPreviousPixel(imageData, i);
+    //     const nextRowPixel = getNextRowPixel(imageData, i, imageData.width);
+    //     const PreviousRowPixel = getPreviousRowPixel(imageData, i, imageData.width);
+    //     const isLastRowPixel = isLastRow(i, imageData.width, imageData.height);
+    //     const isCurRowLastPixel = isLastPixelInRow(i, imageData.width);
+    //     // console.log({ r, g, b, a }, nextPixel, previousPixel, nextRowPixel, isLastRowPixel, isCurRowLastPixel);
 
-        // 对比度
-        const avg = (r + g + b) / 3;
-        r = Math.min(Math.max(((r - avg) * contrast) + avg + 128 * (contrast - 1), 0), 255);
-        g = Math.min(Math.max(((g - avg) * contrast) + avg + 128 * (contrast - 1), 0), 255);
-        b = Math.min(Math.max(((b - avg) * contrast) + avg + 128 * (contrast - 1), 0), 255);
+    //     // 亮度
+    //     r = Math.min(r * (1 + brightness), 255);
+    //     g = Math.min(g * (1 + brightness), 255);
+    //     b = Math.min(b * (1 + brightness), 255);
 
-        // 曝光
-        r = Math.min(r + exposure, 255);
-        g = Math.min(g + exposure, 255);
-        b = Math.min(b + exposure, 255);
+    //     // 对比度
+    //     const avg = (r + g + b) / 3;
+    //     r = Math.min(Math.max(((r - avg) * contrast) + avg + 128 * (contrast - 1), 0), 255);
+    //     g = Math.min(Math.max(((g - avg) * contrast) + avg + 128 * (contrast - 1), 0), 255);
+    //     b = Math.min(Math.max(((b - avg) * contrast) + avg + 128 * (contrast - 1), 0), 255);
 
-        // 饱和度
-        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-        r = r * saturation + gray * (1 - saturation);
-        g = g * saturation + gray * (1 - saturation);
-        b = b * saturation + gray * (1 - saturation);
+    //     // 曝光
+    //     r = Math.min(r + exposure, 255);
+    //     g = Math.min(g + exposure, 255);
+    //     b = Math.min(b + exposure, 255);
 
-        // console.log(this.image.filterType);
-        // 根据滤镜类型应用滤镜
-        switch (this.image.filterType) {
-          case FilterType.Normal:
-            break;
-          case FilterType.Grayscale:
-            const gray = 0.21 * r + 0.72 * g + 0.07 * b;
-            r = gray;
-            g = gray;
-            b = gray;
-            break;
-          case FilterType.Sepia:
-            r = Math.min(255, 0.393 * r + 0.769 * g + 0.189 * b);
-            g = Math.min(255, 0.349 * r + 0.686 * g + 0.168 * b);
-            b = Math.min(255, 0.272 * r + 0.534 * g + 0.131 * b);
-            break;
-          case FilterType.Invert:
-            r = 255 - r;
-            g = 255 - g;
-            b = 255 - b;
-            break;
-          case FilterType.Sharpen:
-            r = 255 - r;
-            g = 255 - g;
-            b = 255 - b;
-            break;
-          case FilterType.fluorescence:
-            r = r * 128 / (g + b + 1);
-            g = g * 128 / (r + b + 1)
-            b = b * 128 / (g + r + 1)
-            break;
-          case FilterType.threshold:
-            var average = (r + g + a) / 3;
-            r = g = b = average > 150 ? 255 : 0;
-            break;
-          case FilterType.Emboss:
-            if (isLastRowPixel) {
-              // 最后一行取上一行的当前点
-              r = PreviousRowPixel!.r;
-              g = PreviousRowPixel!.g;
-              b = PreviousRowPixel!.b;
-            } else {
-              // 是当前行的最后一个点就取前一个点，否则就取下一行的当前点
-              if (isCurRowLastPixel) {
-                r = previousPixel!.r;
-                g = previousPixel!.g;
-                b = previousPixel!.b;
-              } else {
-                r = 255 / 2 + 2 * r - nextPixel!.r - nextRowPixel!.r;
-                g = 255 / 2 + 2 * g - nextPixel!.g - nextRowPixel!.g;
-                b = 255 / 2 + 2 * b - nextPixel!.b - nextRowPixel!.b;
-              }
-            }
-            break;
-          default:
-            console.log('Unsupported filter type');
-        }
+    //     // 饱和度
+    //     const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+    //     r = r * saturation + gray * (1 - saturation);
+    //     g = g * saturation + gray * (1 - saturation);
+    //     b = b * saturation + gray * (1 - saturation);
 
-        imageData.data[i] = r;
-        imageData.data[i + 1] = g;
-        imageData.data[i + 2] = b;
-        imageData.data[i + 3] = a;
-      }
-      this.image.cacheStyleSettings = {
-        ...this.image.styleSettings,
-        width: this.image.width,
-        height: this.image.height,
-        filterType: this.image.filterType,
-        imageData: imageData,
-      }
-      console.timeEnd();
-    }
+    //     // console.log(this.image.filterType);
+    //     // 根据滤镜类型应用滤镜
+    //     switch (this.image.filterType) {
+    //       case FilterType.Normal:
+    //         break;
+    //       case FilterType.Grayscale:
+    //         const gray = 0.21 * r + 0.72 * g + 0.07 * b;
+    //         r = gray;
+    //         g = gray;
+    //         b = gray;
+    //         break;
+    //       case FilterType.Sepia:
+    //         r = Math.min(255, 0.393 * r + 0.769 * g + 0.189 * b);
+    //         g = Math.min(255, 0.349 * r + 0.686 * g + 0.168 * b);
+    //         b = Math.min(255, 0.272 * r + 0.534 * g + 0.131 * b);
+    //         break;
+    //       case FilterType.Invert:
+    //         r = 255 - r;
+    //         g = 255 - g;
+    //         b = 255 - b;
+    //         break;
+    //       case FilterType.Sharpen:
+    //         r = 255 - r;
+    //         g = 255 - g;
+    //         b = 255 - b;
+    //         break;
+    //       case FilterType.fluorescence:
+    //         r = r * 128 / (g + b + 1);
+    //         g = g * 128 / (r + b + 1)
+    //         b = b * 128 / (g + r + 1)
+    //         break;
+    //       case FilterType.threshold:
+    //         var average = (r + g + a) / 3;
+    //         r = g = b = average > 150 ? 255 : 0;
+    //         break;
+    //       case FilterType.Emboss:
+    //         if (isLastRowPixel) {
+    //           // 最后一行取上一行的当前点
+    //           r = PreviousRowPixel!.r;
+    //           g = PreviousRowPixel!.g;
+    //           b = PreviousRowPixel!.b;
+    //         } else {
+    //           // 是当前行的最后一个点就取前一个点，否则就取下一行的当前点
+    //           if (isCurRowLastPixel) {
+    //             r = previousPixel!.r;
+    //             g = previousPixel!.g;
+    //             b = previousPixel!.b;
+    //           } else {
+    //             r = 255 / 2 + 2 * r - nextPixel!.r - nextRowPixel!.r;
+    //             g = 255 / 2 + 2 * g - nextPixel!.g - nextRowPixel!.g;
+    //             b = 255 / 2 + 2 * b - nextPixel!.b - nextRowPixel!.b;
+    //           }
+    //         }
+    //         break;
+    //       default:
+    //         console.log('Unsupported filter type');
+    //     }
 
-    if (this.image.cacheStyleSettings.imageData) {
-      this.ctx.putImageData(this.image.cacheStyleSettings.imageData, this.image.x * this.dpi, this.image.y * this.dpi)
-    }
+    //     imageData.data[i] = r;
+    //     imageData.data[i + 1] = g;
+    //     imageData.data[i + 2] = b;
+    //     imageData.data[i + 3] = a;
+    //   }
+    //   this.image.cacheStyleSettings = {
+    //     ...this.image.styleSettings,
+    //     width: this.image.width,
+    //     height: this.image.height,
+    //     filterType: this.image.filterType,
+    //     imageData: imageData,
+    //   }
+    //   console.timeEnd();
+    // }
+
+    // if (this.image.cacheStyleSettings.imageData) {
+    //   this.ctx.putImageData(this.image.cacheStyleSettings.imageData, this.image.x * this.dpi, this.image.y * this.dpi)
+    // }
 
     this.ctx.restore()
   }
@@ -838,6 +750,7 @@ export class CanvasImageManipulator {
   private drawCropRect() {
     this.ctx.save()
 
+    this.ctx.globalCompositeOperation = "source-over";
     // 绘制裁剪框
     this.ctx.strokeStyle = 'rgba(255,255,255)'
     this.ctx.lineWidth = this.cropRect.lineWidth
@@ -869,7 +782,7 @@ export class CanvasImageManipulator {
   private drawCropCover() {
     this.ctx.save()
     this.ctx.fillStyle = "rgba(0,0,0,0.8)"
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.globalCompositeOperation = "source-atop"
     this.ctx.clearRect(this.cropRect.x, this.cropRect.y, this.cropRect.width, this.cropRect.height);
     this.ctx.restore()
