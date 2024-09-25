@@ -137,9 +137,6 @@ export class Image {
   draw() {
     console.time('drawImage');
     const { ctx, dpi, scale } = this.rootCanvas;
-    // this.width = this.imageElement.width * scale;
-    // this.height = this.imageElement.height * scale;
-
     ctx.save();
     ctx.globalCompositeOperation = "destination-over";
     // 中心点
@@ -148,15 +145,23 @@ export class Image {
     ctx.scale(this.flip.x, this.flip.y);
     // 旋转
     ctx.rotate(this.angle * Math.PI / 180);
+
+    const offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = this.width * dpi;
+    offscreenCanvas.height = this.height * dpi;
+    const offscreenCtx = offscreenCanvas.getContext('2d');
+    offscreenCtx!.scale(dpi, dpi)
+    offscreenCtx!.drawImage(this.imageElement, this.sx, this.sy, this.sw, this.sh, 0, 0, this.width, this.height);
+
     // 渲染
-    ctx.drawImage(this.imageElement, this.sx, this.sy, this.sw, this.sh, -this.width / 2, -this.height / 2, this.width, this.height);
+    // ctx.drawImage(this.imageElement, this.sx, this.sy, this.sw, this.sh, -this.width / 2, -this.height / 2, this.width, this.height);
 
     if (this.isDrawImgStyled()) {
 
       console.log('计算');
 
       const { brightness, contrast, exposure, saturation } = this.styled
-      const imageData = ctx.getImageData(this.x * dpi, this.y * dpi, this.width * dpi, this.height * dpi)
+      const imageData = offscreenCtx!.getImageData(0, 0, this.width * dpi, this.height * dpi)
 
       console.time('drawImageStyle');
 
@@ -269,24 +274,12 @@ export class Image {
       console.timeEnd('drawImageStyle');
     }
 
-    // ctx.restore();
-    // ctx.save();
     if (this.cache.imageData) {
-      // console.log('渲染');
-      // ctx.putImageData(this.cache.imageData, this.x * dpi, this.y * dpi);
-      console.log('渲染');
-      // 创建离屏 canvas
-      const offscreenCanvas = document.createElement('canvas');
-      offscreenCanvas.width = this.width * dpi;
-      offscreenCanvas.height = this.height * dpi;
-      const offscreenCtx = offscreenCanvas.getContext('2d');
-
-      if (offscreenCtx) {
-        offscreenCtx.putImageData(this.cache.imageData, 0, 0);
-        ctx.globalCompositeOperation = "source-over";
-        ctx.drawImage(offscreenCanvas, -this.width / 2, -this.height / 2, this.width, this.height);
-      }
+      offscreenCtx!.putImageData(this.cache.imageData, 0, 0);
     }
+
+    ctx.drawImage(offscreenCanvas, -this.width / 2, -this.height / 2, this.width, this.height);
+
     ctx.restore();
     console.timeEnd('drawImage');
   }
