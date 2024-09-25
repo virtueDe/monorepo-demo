@@ -4,7 +4,7 @@ import { TextEditor } from "../editor";
 import { ICreatePanelProps, IPanel, PanelS, Elements, TextNodeType, FontUnderline, FontLineThrough } from "../types";
 import { Panel } from "./panel";
 import { TextNode } from "./textNode";
-
+import { KEYBOARD_KEYS } from "../constant";
 interface IRow {
   x: number
   y: number
@@ -150,7 +150,7 @@ export class Core {
 
     this.rowDrawBaselineMap.set(id, rows)
 
-    console.log(this.rowDrawBaselineMap);
+    // console.log(this.rowDrawBaselineMap);
     console.log(elements);
   }
   drawElements(panel: IPanel) {

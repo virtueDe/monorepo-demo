@@ -1,4 +1,4 @@
-class KeyboardListener {
+export class KeyboardListener {
   private eventListeners: Map<string, (event: KeyboardEvent) => void> = new Map();
 
   // 添加键盘事件监听器

@@ -81,8 +81,8 @@ export class Cursor {
       this.cursorInElement = elements[elements.length - 1]
       this.cursorIndex = this.cursorInElement.index;
     }
-    console.log('closestElement', this.cursorInElement);
-    console.log('cursorIndex', this.cursorIndex);
+    // console.log('closestElement', this.cursorInElement);
+    // console.log('cursorIndex', this.cursorIndex);
     this.drawCursor(this.cursorInElement.position.x + this.cursorInElement.position.w, this.cursorInElement.position.y + LINE_GAP, this.cursorInElement.position.h * 1.2)
   }
   updateCursorPosition(index?: number) {
@@ -91,7 +91,7 @@ export class Cursor {
       return
     }
     const { children: elements = [] } = panel
-    if (!index) {
+    if (index === undefined) {
       this.cursorInElement = elements[elements.length - 1]
       this.cursorIndex = this.cursorInElement.index
     } else {

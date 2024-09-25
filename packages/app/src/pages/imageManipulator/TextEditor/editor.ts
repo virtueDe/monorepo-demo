@@ -15,9 +15,8 @@ export class TextEditor {
   constructor(private rootCanvas: CanvasImageManipulator, options?: OptionalOptions) {
 
     this.options = mergeOptions(defaultOptions, options || {})
-
-    this.core = new Core(this)
     this.interaction = new Interaction(this)
+    this.core = new Core(this)
 
     // console.log(this.rootCanvas, this.options);
 
