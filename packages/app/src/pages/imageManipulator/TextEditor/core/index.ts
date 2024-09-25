@@ -1,10 +1,8 @@
-import { FontStyle, FontWeight } from "../../graphs";
 import { LINE_GAP, UNDERLINE_GAP } from "../constant";
 import { TextEditor } from "../editor";
 import { ICreatePanelProps, IPanel, PanelS, Elements, TextNodeType, FontUnderline, FontLineThrough } from "../types";
 import { Panel } from "./panel";
 import { TextNode } from "./textNode";
-import { KEYBOARD_KEYS } from "../constant";
 interface IRow {
   x: number
   y: number
@@ -81,10 +79,11 @@ export class Core {
     const rows: IRow[] = []
     const { contentDrawPoint: drawRange, children: elements, id } = panel
     let [drawRangeX, drawRangeY, drawRangeW, drawRangeH] = drawRange
-    // 当前行的剩余渲染宽度
+    /** 当前行的剩余渲染宽度 */
     let residualWidth = drawRangeW
-    // 是否重新计算Y轴
+    /** 是否重新计算Y轴 */
     let againComputeY = true
+    /** 当前渲染在第几行 */
     let rowIndex = 0;
 
     let y = drawRangeY
@@ -108,7 +107,7 @@ export class Core {
           }
         } = element
 
-        if (residualWidth < width) {
+        if (residualWidth < width || element.type === TextNodeType.SpaceNode) {
           againComputeY = true
         }
         if (againComputeY) {
@@ -159,14 +158,15 @@ export class Core {
     let [drawRangeX, drawRangeY, drawRangeW, drawRangeH] = drawRange
 
     let index = 0;
-    // 当前行的剩余渲染宽度
+    /** 当前行的剩余渲染宽度 */
     let residualWidth = drawRangeW
-    // 是否重新计算Y轴
+    /** 是否重新计算Y轴 */
     let againComputeY = true
-    // 当前渲染在第几行
+    /** 当前渲染在第几行 */
     let rowIndex = 0
-    // 文字渲染的X, Y
+    /** 文字渲染的X, Y */
     let drawY = drawRangeY
+    /** 文字渲染的X, Y */
     let drawX = drawRangeX
 
     // this.ctx.save()
@@ -201,7 +201,7 @@ export class Core {
           position,
         } = element
 
-        if (residualWidth < width) {
+        if (residualWidth < width || element.type === TextNodeType.SpaceNode) {
           againComputeY = true
           drawX = drawRangeX
         }
@@ -266,9 +266,6 @@ export class Core {
   private drawTextNode(elements: Elements, drawPoint: number[]) {
   }
   /**
-   * 输入事件
-   *1. 生成基本node节点
-   *2. 插入到当前panel光标所在的行中
    * @param text
    */
   onInput(text: string) {
@@ -282,9 +279,7 @@ export class Core {
     this.interaction.cursor.updateCursorPosition(this.interaction.cursor.cursorIndex + textNodeList.length)
   }
   insertNode(Elements: Elements) {
-
   }
   deleteNode() {
-
   }
 }

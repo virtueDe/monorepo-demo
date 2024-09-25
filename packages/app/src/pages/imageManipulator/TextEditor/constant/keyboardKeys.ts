@@ -5,4 +5,5 @@ export const KEYBOARD_KEYS = {
   ARROW_DOWN: 'ArrowDown',
   ARROW_LEFT: 'ArrowLeft',
   ARROW_RIGHT: 'ArrowRight',
+  ENTER: 'Enter',
 } as const;

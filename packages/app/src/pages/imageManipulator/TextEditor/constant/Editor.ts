@@ -36,3 +36,11 @@ export const defaultOptions: ITextEditorOptions = {
   bounding: BOUNDING,
   textAttr: TEXT_ATTR,
 }
+export const ZERO_NODE_VALUE = '\u200B';
+export const SPACE_NODE_VALUE = ' ';
+export const BREAK_NODE_VALUE = '\n';
+
+// 下划线距离文本底线的距离
+export const UNDERLINE_GAP = 2;
+
+export const LINE_GAP = 5;

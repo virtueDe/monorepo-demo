@@ -1,4 +1,4 @@
-import { KEYBOARD_KEYS } from '../constant';
+import { KEYBOARD_KEYS, SPACE_NODE_VALUE } from '../constant';
 import { TextNodeType } from '../types';
 import { Interaction } from '.';
 
@@ -22,7 +22,7 @@ export class KeyboardHandler {
     keyboardListener.addEventListener(KEYBOARD_KEYS.ARROW_DOWN, this.handleArrowDown.bind(this));
     keyboardListener.addEventListener(KEYBOARD_KEYS.ARROW_LEFT, this.handleArrowLeft.bind(this));
     keyboardListener.addEventListener(KEYBOARD_KEYS.ARROW_RIGHT, this.handleArrowRight.bind(this));
-    // keyboardListener.addEventListener(KEYBOARD_KEYS.ENTER, this.handleEnter.bind(this));
+    keyboardListener.addEventListener(KEYBOARD_KEYS.ENTER, this.handleEnter.bind(this));
   }
 
   private handleBackspace() {
@@ -133,6 +133,21 @@ export class KeyboardHandler {
       if (children.length - 1 === this.interaction.cursor.cursorIndex) {
         return
       }
+      this.interaction.cursor.updateCursorPosition(this.interaction.cursor.cursorIndex + 1)
+    }
+  }
+
+  private handleEnter() {
+    // 实现回车键逻辑
+    const { focusPanel } = this.core
+    if (focusPanel) {
+      const { children } = focusPanel
+      const element = children[this.interaction.cursor.cursorIndex]
+      if (!element) return
+      const spaceNode = this.core.getTextNode.createTextNode(TextNodeType.SpaceNode, SPACE_NODE_VALUE, this.core.getTextNode.textAttr)
+      console.log(spaceNode);
+      children.splice(this.interaction.cursor.cursorIndex + 1, 0, spaceNode)
+      this.rootCanvas.draw()
       this.interaction.cursor.updateCursorPosition(this.interaction.cursor.cursorIndex + 1)
     }
   }

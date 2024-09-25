@@ -38,8 +38,12 @@ export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
   let height = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent
   // TODO: 斜体的宽度还需要重新计算
   if (fontStyle === FontStyle.Italic) {
-    width = textMetrics.actualBoundingBoxRight + textMetrics.actualBoundingBoxLeft
-    // width = textMetrics.width + 2
+    // width = textMetrics.actualBoundingBoxRight + textMetrics.actualBoundingBoxLeft
+    width = textMetrics.width
+  }
+  if (text === SPACE_NODE_VALUE) {
+    width = 0
+    height = fontSize
   }
   if (text === ZERO_NODE_VALUE) {
     height = fontSize
