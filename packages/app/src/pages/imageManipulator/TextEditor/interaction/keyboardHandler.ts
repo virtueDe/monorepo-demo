@@ -1,4 +1,4 @@
-import { KEYBOARD_KEYS, SPACE_NODE_VALUE } from '../constant';
+import { BREAK_NODE_VALUE, KEYBOARD_KEYS, SPACE_NODE_VALUE } from '../constant';
 import { TextNodeType } from '../types';
 import { Interaction } from '.';
 
@@ -31,11 +31,13 @@ export class KeyboardHandler {
     if (focusPanel) {
       const { children } = focusPanel
       const element = children[this.interaction.cursor.cursorIndex]
-      if (element.type === TextNodeType.TextNode) {
-        children.splice(this.interaction.cursor.cursorIndex, 1)
-        this.rootCanvas.draw()
-        this.interaction.cursor.updateCursorPosition(this.interaction.cursor.cursorIndex - 1)
+      if (element.type === TextNodeType.ZeroNode) {
+        return
       }
+      if (!element) return
+      children.splice(this.interaction.cursor.cursorIndex, 1)
+      this.rootCanvas.draw()
+      this.interaction.cursor.updateCursorPosition(this.interaction.cursor.cursorIndex - 1)
     }
   }
 
@@ -45,12 +47,13 @@ export class KeyboardHandler {
     if (focusPanel) {
       const { children } = focusPanel
       const element = children[this.interaction.cursor.cursorIndex + 1]
-      if (!element) return
-      if (element.type === TextNodeType.TextNode) {
-        children.splice(this.interaction.cursor.cursorIndex + 1, 1)
-        this.rootCanvas.draw()
-        this.interaction.cursor.updateCursorPosition(this.interaction.cursor.cursorIndex)
+      if (element.type === TextNodeType.ZeroNode) {
+        return
       }
+      if (!element) return
+      children.splice(this.interaction.cursor.cursorIndex + 1, 1)
+      this.rootCanvas.draw()
+      this.interaction.cursor.updateCursorPosition(this.interaction.cursor.cursorIndex)
     }
   }
 
@@ -144,9 +147,9 @@ export class KeyboardHandler {
       const { children } = focusPanel
       const element = children[this.interaction.cursor.cursorIndex]
       if (!element) return
-      const spaceNode = this.core.getTextNode.createTextNode(TextNodeType.SpaceNode, SPACE_NODE_VALUE, this.core.getTextNode.textAttr)
-      console.log(spaceNode);
-      children.splice(this.interaction.cursor.cursorIndex + 1, 0, spaceNode)
+      const breakNode = this.core.getTextNode.createTextNode(TextNodeType.BreakNode, BREAK_NODE_VALUE, this.core.getTextNode.textAttr)
+      // console.log(breakNode);
+      children.splice(this.interaction.cursor.cursorIndex + 1, 0, breakNode)
       this.rootCanvas.draw()
       this.interaction.cursor.updateCursorPosition(this.interaction.cursor.cursorIndex + 1)
     }

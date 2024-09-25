@@ -107,7 +107,7 @@ export class Core {
           }
         } = element
 
-        if (residualWidth < width || element.type === TextNodeType.SpaceNode) {
+        if (residualWidth < width || element.type === TextNodeType.BreakNode) {
           againComputeY = true
         }
         if (againComputeY) {
@@ -116,10 +116,16 @@ export class Core {
           if (rowIndex != 0) {
             y += rows[rowIndex - 1].h
           }
+          let h = 0
+          // if (rowIndex === 0) {
+          //   h = height + LINE_GAP * 2
+          // } else {
+          h = actualBoundingBoxAscent + actualBoundingBoxDescent + LINE_GAP * 2
+          // }
           const rowItem = {
             x: drawRangeX,
             y,
-            h: rowIndex === 0 ? height + LINE_GAP * 2 : actualBoundingBoxAscent + actualBoundingBoxDescent + LINE_GAP * 2,
+            h,
             w: width,
             baseline: actualBoundingBoxAscent,
             index: rowIndex,
@@ -201,7 +207,7 @@ export class Core {
           position,
         } = element
 
-        if (residualWidth < width || element.type === TextNodeType.SpaceNode) {
+        if (residualWidth < width || element.type === TextNodeType.BreakNode) {
           againComputeY = true
           drawX = drawRangeX
         }

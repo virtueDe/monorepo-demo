@@ -1,4 +1,4 @@
-import { SPACE_NODE_VALUE, ZERO_NODE_VALUE } from "../constant";
+import { BREAK_NODE_VALUE, SPACE_NODE_VALUE, ZERO_NODE_VALUE } from "../constant";
 import { FontStyle, INodeMetrics, ITextAttr } from "../types"
 
 export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
@@ -36,26 +36,34 @@ export const getMetrics = (text: string, attr: ITextAttr): INodeMetrics => {
   */
   let width = textMetrics.width
   let height = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent
+
+  let actualBoundingBoxAscent = textMetrics.actualBoundingBoxAscent
+  let actualBoundingBoxDescent = textMetrics.actualBoundingBoxDescent
+
+  let fontBoundingBoxAscent = textMetrics.fontBoundingBoxAscent
+  let fontBoundingBoxDescent = textMetrics.fontBoundingBoxDescent
+
   // TODO: 斜体的宽度还需要重新计算
   if (fontStyle === FontStyle.Italic) {
     // width = textMetrics.actualBoundingBoxRight + textMetrics.actualBoundingBoxLeft
     width = textMetrics.width
   }
-  if (text === SPACE_NODE_VALUE) {
+
+  if (text === BREAK_NODE_VALUE || text === ZERO_NODE_VALUE) {
+    height = fontSize
     width = 0
-    height = fontSize
-  }
-  if (text === ZERO_NODE_VALUE) {
-    height = fontSize
+    const metrics = getMetrics('啊', attr)
+    actualBoundingBoxAscent = metrics.actualBoundingBoxAscent
+    actualBoundingBoxDescent = metrics.actualBoundingBoxDescent
   }
   return {
     width,
     height,
 
-    actualBoundingBoxAscent: textMetrics.actualBoundingBoxAscent,
-    actualBoundingBoxDescent: textMetrics.actualBoundingBoxDescent,
+    actualBoundingBoxAscent,
+    actualBoundingBoxDescent,
 
-    fontBoundingBoxAscent: textMetrics.fontBoundingBoxAscent,
-    fontBoundingBoxDescent: textMetrics.fontBoundingBoxDescent,
+    fontBoundingBoxAscent,
+    fontBoundingBoxDescent,
   }
 }
