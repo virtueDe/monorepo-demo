@@ -56,9 +56,16 @@ export class TextEditor {
 
     this.interaction.setCursorPosition(x, y)
     this.interaction.input.focus()
+
+    if (this.core.focusPanel) {
+      this.interaction.rang.start = this.interaction.cursor.cursorIndex + 1
+    }
   }
   public handleMousemove(x: number, y: number) {
-
+    const { element, index } = this.interaction.cursor.getPointElement(x, y)
+    if (element) {
+      this.interaction.rang.end = index
+    }
   }
   public createTextEditorPanel({ x, y, w, h }: ICreatePanelProps) {
     this.core.createPanel({ x, y, w, h })

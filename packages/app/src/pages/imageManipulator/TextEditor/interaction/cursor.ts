@@ -45,15 +45,20 @@ export class Cursor {
     // clearTimeout(this.cursorTimer)
     this.cursorEl.style.display = 'none'
   }
-  computeCursorPosition(x: number, y: number) {
-    // debugger
+
+  getPointElement(x: number, y: number): { element: IElement | null, index: number } {
+
     // TODO: 光标这里还要优化，光标在行的前面后面
+    let pointElement: IElement | null = null
+    let pointIndex: number = -1
+
+
     const panel = this.interaction.getTextEditor().getCore().focusPanel
     if (!panel) {
-      return
+      return { element: pointElement, index: pointIndex }
     }
-    const { children: elements = [], contentDrawPoint = [] } = panel
 
+    const { children: elements = [] } = panel
 
     for (let index = 0; index < elements.length; index++) {
       const element = elements[index];
@@ -68,21 +73,29 @@ export class Cursor {
         // 计算 x 坐标是否超过元素的一半
         const halfWidth = position.w / 2;
         if (x <= position.x + halfWidth) {
-          this.cursorInElement = elements[index - 1] || null;
-          this.cursorIndex = this.cursorInElement ? this.cursorInElement.index : 0
+          pointElement = elements[index - 1] || null;
+          pointIndex = pointElement ? pointElement.index : 0
         } else {
-          this.cursorInElement = element;
-          this.cursorIndex = this.cursorInElement.index;
+          pointElement = element;
+          pointIndex = pointElement.index;
         }
         break;
       }
     }
-    if (!this.cursorInElement) {
-      this.cursorInElement = elements[elements.length - 1]
-      this.cursorIndex = this.cursorInElement.index;
+    if (!pointElement) {
+      pointElement = elements[elements.length - 1]
+      pointIndex = pointElement.index;
     }
-    // console.log('closestElement', this.cursorInElement);
-    // console.log('cursorIndex', this.cursorIndex);
+
+    return { element: pointElement, index: pointIndex }
+  }
+  computeCursorPosition(x: number, y: number) {
+    const { element, index } = this.getPointElement(x, y)
+    if (!element) {
+      return
+    }
+    this.cursorInElement = element
+    this.cursorIndex = index
     this.drawCursor(this.cursorInElement.position.x + this.cursorInElement.position.w, this.cursorInElement.position.y + LINE_GAP, this.cursorInElement.position.h * 1.2)
   }
   updateCursorPosition(index?: number) {

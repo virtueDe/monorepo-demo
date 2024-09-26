@@ -244,6 +244,16 @@ export class Core {
           this.ctx.stroke();
         }
 
+        // 绘制选区
+        if (index >= this.interaction.rang.start && index <= this.interaction.rang.end) {
+          this.ctx.save()
+          this.ctx.beginPath()
+          this.ctx.globalAlpha = 0.6
+          this.ctx.fillStyle = '#3367D1'
+          this.ctx.fillRect(drawX, rows[element.rowIndex].y, width, rows[element.rowIndex].h)
+          this.ctx.restore()
+        }
+
         // 设置当前元素的一些属性
         position.x = drawX
         // position.y = drawY - rows[element.rowIndex].ascent - LINE_GAP
