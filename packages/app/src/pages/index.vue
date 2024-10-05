@@ -440,6 +440,15 @@ function updateFps(timestamp: DOMHighResTimeStamp) {
 onMounted(() => {
   requestAnimationFrame(updateFps);
 });
+
+const handleUndo = () => {
+  canvasInstance.value?.undo()
+}
+
+const handleRedo = () => {
+  canvasInstance.value?.redo()
+}
+
 </script>
 
 <template>
@@ -460,9 +469,11 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div flex font-size="22px" class="bar" pos-relative>
+      <div class="flex font-size-2xl cup gap-20px items-center justify-center">
+        <div class="i-carbon:undo hover:color-[#A9A9A9] transition duration-200 ease-in-out" @click="handleUndo"></div>
+        <div class="i-carbon:redo hover:color-[#A9A9A9] transition duration-200 ease-in-out" @click="handleRedo"></div>
       </div>
-      <div class="right p-r-3 flex gap-10px items-center">
+      <div class="right p-r-3 flex gap-10px items-center w-250px justify-end">
         <div>Current FPS: {{ fps }}</div>
         <div btn @click="handleClickSavaImage">保存</div>
       </div>
@@ -486,6 +497,7 @@ onMounted(() => {
         <div class="p12px h-100% w-280px bg-#292c31 border-l-1  border-black border-solid pos-absolute top-0 z-1"
           :class="['left-60px']">
           <!-- currentBarIndex !== 0 ?  : '-translate-x-100%'-->
+
           <div class="font-size-16p mb-12px">{{ barOption[currentBarIndex].title }}</div>
           <!-- crop -->
           <div v-if="currentBarIndex === 1"

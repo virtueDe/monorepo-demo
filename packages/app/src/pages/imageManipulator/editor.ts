@@ -1,6 +1,7 @@
 import { TextEditor, ITextAttr } from './TextEditor';
 import { CropRect, DrawType, FilterType, FontLineThrough, FontUnderline, Image, ImageStyleKey, Line, MouseInCropModule, TextAttribute, TextGraphs } from './graphs/index'
 import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform, getNextPixel, getNextRowPixel, getPreviousPixel, isLastRow, isLastPixelInRow, getPreviousRowPixel, applyConvolution } from './utils';
+import { UndoRedoManager } from './UndoRedoManager';
 
 export enum CanvasModel {
   Preview = 'Preview',
@@ -9,6 +10,21 @@ export enum CanvasModel {
   Styled = 'styled',
   Filter = 'filter',
   Text = 'text',
+}
+interface State {
+  image: any;
+  cropRect?: any;
+  line?: {
+    lineData: any[];
+    [key: string]: any;
+  };
+  textEditor?: any;
+}
+
+export interface SetLineOptions {
+  lineWidth: number
+  strokeStyle: string
+  drawType: DrawType
 }
 
 export class CanvasImageManipulator {
@@ -40,6 +56,7 @@ export class CanvasImageManipulator {
   cropRect: CropRect
   line: Line
   textEditor: TextEditor
+  private undoRedoManager: UndoRedoManager<State>;
 
   // ro: ResizeObserver
 
@@ -72,6 +89,8 @@ export class CanvasImageManipulator {
     this.line = new Line()
     this.textEditor = new TextEditor(this)
 
+    this.undoRedoManager = new UndoRedoManager<State>(this.getCurrentState(), 50);
+    console.log('this.undoRedoManager', this.undoRedoManager);
     // this.ro = new ResizeObserver(entries => {
     //   entries.forEach(entry => {
     //     this.handleViewportResize(entry.contentRect.width, entry.contentRect.height)
@@ -81,6 +100,72 @@ export class CanvasImageManipulator {
     this.initEventListeners();
 
     // this.ro.observe(this.canvas.parentElement as HTMLElement);
+  }
+  private getCurrentState(): State {
+    return {
+      image: {
+        width: this.image.width,
+        height: this.image.height,
+        x: this.image.x,
+        y: this.image.y,
+        angle: this.image.angle,
+        flip: this.image.flip,
+        styled: this.image.styled,
+        filterType: this.image.filterType,
+        sx: this.image.sx,
+        sy: this.image.sy,
+        sw: this.image.sw,
+        sh: this.image.sh,
+      },
+      // cropRect: { ...this.cropRect },
+      // line: {
+      //   ...this.line,
+      //   lineData: this.line.lineData.map(line => ({ ...line }))
+      // },
+      // textEditor: this.textEdiotr.getState()
+    };
+  }
+
+  private saveState(action: string) {
+    this.undoRedoManager.saveState(this.getCurrentState(), action);
+  }
+  undo() {
+    const previousState = this.undoRedoManager.undo();
+    if (previousState) {
+      this.applyState(previousState);
+      this.draw();
+    }
+  }
+  redo() {
+    const nextState = this.undoRedoManager.redo();
+    if (nextState) {
+      this.applyState(nextState);
+      console.log('nextState', nextState);
+      console.log('this.image', this.image);
+      this.draw();
+    }
+  }
+  private applyState(state: State) {
+    this.image.width = state.image.width;
+    this.image.height = state.image.height;
+    this.image.x = state.image.x;
+    this.image.y = state.image.y;
+    this.image.angle = state.image.angle;
+    this.image.flip = state.image.flip;
+    this.image.styled = state.image.styled;
+    this.image.filterType = state.image.filterType;
+    this.image.sx = state.image.sx;
+    this.image.sy = state.image.sy;
+    this.image.sw = state.image.sw;
+    this.image.sh = state.image.sh;
+
+
+    // this.cropRect = { ...state.cropRect };
+    // this.line = {
+    //   ...state.line,
+    //   lineData: state.line.lineData.map(line => ({ ...line }))
+    // };
+    // this.textEditor.setState(state.textEditor);
   }
   get scale() {
     return this.canvasScale.value
@@ -93,6 +178,7 @@ export class CanvasImageManipulator {
     this.image.imageElement.onload = () => {
       this.computeImage()
       this.draw()
+      this.saveState('loadImage')
     };
   }
   public saveImage() {
@@ -477,6 +563,7 @@ export class CanvasImageManipulator {
     this.image.height *= zoom;
 
     this.draw()
+    this.saveState('zoom')
   }
   destroy() {
     this.canvas.removeEventListener("mousedown", this.handleMousedown);
@@ -486,6 +573,10 @@ export class CanvasImageManipulator {
     // this.ro.disconnect();
   }
   private handleMouseup() {
+    if (this.mouse.dragging) {
+      this.saveState(this.canvasModel === CanvasModel.DrawLine ? 'Draw Line' : 'Move Image');
+      console.log(this.undoRedoManager);
+    }
     this.mouse.dragging = false;
     // this.isDrawLine = false
     // console.log(JSON.stringify(this.pathData));
@@ -823,8 +914,3 @@ export class CanvasImageManipulator {
   }
 }
 
-export interface SetLineOptions {
-  lineWidth: number
-  strokeStyle: string
-  drawType: DrawType
-}
