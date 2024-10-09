@@ -2,7 +2,7 @@ import { LINE_GAP, UNDERLINE_GAP } from "../constant";
 import { TextEditor } from "../editor";
 import { ICreatePanelProps, IPanel, PanelS, Elements, TextNodeType, FontUnderline, FontLineThrough } from "../types";
 import { Panel } from "./panel";
-import { TextNode } from "./textNode";
+import { TextNode } from "./text-node";
 interface IRow {
   x: number
   y: number

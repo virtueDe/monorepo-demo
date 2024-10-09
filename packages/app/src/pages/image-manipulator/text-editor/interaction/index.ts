@@ -3,8 +3,8 @@ import { Cursor } from "./cursor";
 import { editorRange } from "./range";
 import { Bounding } from "./bounding";
 import { Input } from "./input";
-import { KeyboardListener } from "./KeyboardListener";
-import { KeyboardHandler } from "./keyboardHandler";
+import { KeyboardListener } from "./Keyboard-listener";
+import { KeyboardHandler } from "./keyboard-handler";
 export class Interaction {
   ctx!: CanvasRenderingContext2D;
   cursor!: Cursor

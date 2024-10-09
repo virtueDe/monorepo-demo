@@ -1,7 +1,7 @@
-import { TextEditor, ITextAttr } from './TextEditor';
+import { TextEditor, ITextAttr } from './text-editor';
 import { CropRect, DrawType, FilterType, FontLineThrough, FontUnderline, Image, ImageStyleKey, Line, MouseInCropModule, TextAttribute, TextGraphs } from './graphs/index'
 import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform, getNextPixel, getNextRowPixel, getPreviousPixel, isLastRow, isLastPixelInRow, getPreviousRowPixel, applyConvolution } from './utils';
-import { UndoRedoManager } from './UndoRedoManager';
+import { UndoRedoManager } from './history';
 
 export enum CanvasModel {
   Preview = 'Preview',

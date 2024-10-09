@@ -1,6 +1,6 @@
 import { Core } from ".";
 import { ZERO_NODE_VALUE } from "../constant";
-import { BOUNDING } from "../constant/Editor";
+import { BOUNDING } from "../constant/editor";
 import { Elements, ICreatePanelProps, IPanel, IZeroNode, Rows, TextNodeType } from "../types";
 import { getUUID } from "../utils";
 

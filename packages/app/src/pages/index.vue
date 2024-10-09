@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends any, O extends any">
-import { CanvasImageManipulator, CanvasModel, FilterType, ImageStyleKey, DrawType, FontWeight, FontStyle, FontUnderline, FontLineThrough } from './imageManipulator/index'
+import { CanvasImageManipulator, CanvasModel, FilterType, ImageStyleKey, DrawType, FontWeight, FontStyle, FontUnderline, FontLineThrough } from './image-manipulator/index'
 
 // import { sum } from "@v50/edit-utils";
 import type { ComponentPublicInstance } from 'vue';
