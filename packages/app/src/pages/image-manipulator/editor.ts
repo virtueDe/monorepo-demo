@@ -1,5 +1,5 @@
 import { TextEditor, ITextAttr } from './text-editor';
-import { CropRect, DrawType, FilterType, FontLineThrough, FontUnderline, Image, ImageStyleKey, Line, MouseInCropModule, TextAttribute, TextGraphs } from './graphs/index'
+import { CropRect, DrawType, FilterType, FontLineThrough, FontUnderline, Image, ImageStyleKey, Line, MouseInCropModule, TextAttribute, TextGraphs, Scene } from './graphs/index'
 import { getCropReferenceLine, getCropDot, getCropLine, checkInPath, rangeTransform, getNextPixel, getNextRowPixel, getPreviousPixel, isLastRow, isLastPixelInRow, getPreviousRowPixel, applyConvolution } from './utils';
 import { UndoRedoManager } from './history';
 
@@ -56,6 +56,8 @@ export class CanvasImageManipulator {
   cropRect: CropRect
   line: Line
   textEditor: TextEditor
+  scene: Scene
+
   private undoRedoManager: UndoRedoManager<State>;
 
   // ro: ResizeObserver
@@ -88,6 +90,7 @@ export class CanvasImageManipulator {
     this.cropRect = new CropRect()
     this.line = new Line()
     this.textEditor = new TextEditor(this)
+    this.scene = new Scene(this)
 
     this.undoRedoManager = new UndoRedoManager<State>(this.getCurrentState(), 50);
     console.log('this.undoRedoManager', this.undoRedoManager);
@@ -476,7 +479,7 @@ export class CanvasImageManipulator {
       let cursor = 'default'
       if (this.canvasModel === CanvasModel.Crop) {
         if (checkInPath(mouseX * this.dpi, mouseY * this.dpi, [this.cropRect.x, this.cropRect.y, this.cropRect.width, this.cropRect.height], this.ctx)) {
-          cursor = 'move' || cursor
+          cursor = 'move'
         }
 
         /**

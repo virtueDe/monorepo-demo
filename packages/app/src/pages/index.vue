@@ -503,11 +503,11 @@ const handleRedo = () => {
           <div v-if="currentBarIndex === 1"
             class="rounded-12px border-1 border-[#34373A] hover:border-[#424549] p-12px">
             <div class="text-left mb12px font-size-14px">旋转与翻转</div>
-            <div class="flex">
+            <!-- <div class="flex">
               <input @input="handleRotationInput" class="w-100%" type="range" min="-180" max="180" v-model="rotate"
                 step="1">
               <div class="ml10px w-40px">{{ rotate }}°</div>
-            </div>
+            </div> -->
             <div class="flex justify-between group mt12px mb12px">
               <div :class="[item.icon]"
                 class="cursor-pointer font-size-18px hover:color-[#A9A9A9] transition duration-200 ease-in-out"
@@ -524,8 +524,8 @@ const handleRedo = () => {
             <div class="flex font-size-14px mb-20px" v-for="(item, idx) in colorOption" :key="idx">
               <div class="mr10px">{{ item.title }}</div>
               <input @input="handleInputRange" class="w-100% flex-1" type="range" :min="item.min" :max="item.max"
-                v-model="imageStyle[item.key]" step="1">
-              <div class="ml10px w-40px">{{ imageStyle[item.key] }}</div>
+                v-model="imageStyle[item.key as ImageStyleKey]" step="1">
+              <div class="ml10px w-40px">{{ imageStyle[item.key as ImageStyleKey] }}</div>
             </div>
 
           </div>
